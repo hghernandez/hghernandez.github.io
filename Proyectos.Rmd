@@ -1,0 +1,9 @@
+---
+title: "Blog/Proyectos"  # any name you want here
+listing: posts # do this exactly
+links: 
+    - icon: fab fa-linkedin-in
+      href: https://www.linkedin.com/in/hernanghernandez/
+    - icon: fab fa-github
+      href: https://github.com/hghernandez
+---

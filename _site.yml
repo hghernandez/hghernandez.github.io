@@ -1,0 +1,18 @@
+name: "Portfolio"
+title: "Hernan Hernandez"
+description: |
+  Mi Blog
+output_dir: "docs"
+navbar:
+  right:
+    - text: "Sobre mi"
+      href: index.html
+    - text: "Proyectos"
+      href: proyectos.html
+    - text: "CV"
+      href: cv.html
+    - icon: fab fa-linkedin-in
+      href: https://www.linkedin.com/in/hernanghernandez/
+    - icon: fab fa-github
+      href: https://github.com/hghernandez
+output: distill::distill_article

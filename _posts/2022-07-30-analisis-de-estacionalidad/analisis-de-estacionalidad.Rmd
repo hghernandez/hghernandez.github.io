@@ -1,0 +1,159 @@
+---
+title: "Análisis de estacionalidad"
+description: |
+  En cualquier ámbito de la vida cotidiana dónde pretendamos hacer proyecciones o compararnos con un momento pasado, es primordial identificar si nuestros datos tienen estacionalidad `r emo::ji("date")`. En este post voy a mostrar algunas estrategias visuales para analizar estacionalidad en series temporales.
+preview: imagenes/estacionalidad.png
+author:
+  - name: Hernan Hernandez
+    url: https://example.com/norajones
+date: 2022-07-30
+output:
+  distill::distill_article:
+    self_contained: false
+    toc: true
+    toc_depth: 2
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  comment = "##"
+)
+
+```
+
+### Cargo los paquetes
+
+```{r}
+library(DBI)
+library(odbc)
+library(dplyr)
+library(dbplyr)
+library(lubridate)
+library(tidyr)
+library(purrr)
+library(ggplot2)
+
+#Cargo las funciones
+
+source("Modulos/create_seasonal.R",encoding= "UTF-8") #Diagnostico estacionalidad
+source("Modulos/heatmap_calendar.R",encoding= "UTF-8") #Mapa de calor en calendarios
+
+#Cargo el analisis
+
+load("estacionalidad.RData")
+load("heat_map.RData")
+#Cargo el dataset
+
+load("dataset_estac.RData")
+
+```
+
+## ¿Por qué analizar la estacionalidad? `r emo::ji("thinking")`
+
+Cuándo hablamos de **estacionalidad** nos referimos a un **comportamiento regular y repetitivo** en nuestras transacciones, ventas, movimientos o clientes a lo largo del tiempo. Generalmente, la estacionalidad está asociada a fenómenos climáticos o festivos.
+
+La estacionalidad de las series de debemos considerarlas, para:
+
+-   Planificar y predecir nuestro futuro `r emo::ji("check")`,
+-   Comprender el negocio `r emo::ji("check")`,
+-   Implementar campañas `r emo::ji("check")`,
+
+## Estacionalidad por comercio `r emo::ji("shopping_bags")`
+
+En este post estaremos analizando el dataset `r emo::ji("receipt")` que **contiene las ventas** por día de 3 comercios ficticios, entre el 01-06-2021 y el 31-12-2021 `r emo::ji("calendar")` . A continuación podemos ver el resumen de los datos del archivo.
+
+```{r}
+kableExtra::kbl(summary(data),
+                format.args = list(decimal.mark = ',', big.mark = ".")) %>%
+  kableExtra::kable_paper("hover", full_width = F)
+```
+
+`r emo::ji("memo")` ahora que vimos el conjunto de datos, usaremos la función **create.seasonal**. Debemos indicarle dos parámetros, el nombre del data frame y del campo dónde está la variable de tipo date (de fecha). El resultado es una lista que contiene un gráfico por cada segmento usado (aquí por cada Merchant), con la **estacionalidad diaria, semanal, mensual y trimestral** `r emo::ji("eyes")`.
+
+```{r echo=TRUE, eval=FALSE}
+
+estacionalidad <- data %>%
+  mutate(nombre= Merchant) %>%
+  nest(column_nest= -c(Merchant)) %>%
+  mutate(seasonal_dx = map(column_nest, ~ create.seasonal(df = .,
+                                                          date = "Fecha")))
+
+```
+
+```{r xaringan-panelset, echo=FALSE}
+xaringanExtra::use_panelset()
+```
+
+::: panelset
+```{r results="asis", layout="l-body-outset", fig.heigth=2, fig.width=9}
+for(i in 1:length(estacionalidad$seasonal_dx)){
+  cat("::: {.panel}\n")
+  cat("\n")
+  cat("###", estacionalidad$Merchant[i] , "{.panel-name}\n")
+  print(estacionalidad$seasonal_dx[[i]]$grafico)
+  cat("\n")
+  cat(":::\n")
+}
+```
+:::
+
+Una aclaración importante `r emo::ji("warning")`, los puntos de color fucsia indican los valores anómalos o atípicos los cuáles se detectan según la siguiente fórmula:
+
+-   **Q3+1.5 x IQR**
+-   **Q1-1.5 x IQR**
+
+Es decir consideramos anómalos todos los valores que se están por lo menos 1.5 veces el rango intercuartil por encima del cuartil 3 o por debajo del cuartil 1 `r emo::ji("fire")`.
+
+### Algunos comentarios de los gráficos `r emo::ji("megaphone")`
+
+-   `r emo::ji("writing_hand_medium_light_skin_tone")`El comercio A tiene mayores ventas los viernes, sábados y domingos. El comercio B y C tienen una caída muy marcadas de sus ventas los domingos.
+-   `r emo::ji("writing_hand_medium_light_skin_tone")`En todos los comercios se observa que diciembre es el mejor mes en cuanto a ventas y por ello el trimestre 4 es el mejor.
+
+## Ranking de dias según cantidad de ventas `r emo::ji("date")`
+
+Una estrategia visual que podemos sumar para una mejor compresión del comportamiento temporal de nuestos datos -ventas en nuestro ejemplo-, es combinar **mapas de calor (heatmap)** en calendarios dónde podamos identificar días con mayores ventas (zonas de calor) y días con menores ventas. Para ello, hacemos uso de la función **heatmap.calendar** que recibe 4 parámetros: + a) el nombre del dataframe, b) fecha de inicio, c) fecha final y d) Una escala de color Brewer para identificar la intensidad de las ventas por día.
+
+Veamos el resultado de la función `r emo::ji("eyes")`.
+
+```{r echo=TRUE, eval=FALSE}
+heatmap_calendar <- data %>%
+  mutate(nombre= Merchant) %>%
+  nest(column_nest= -c(Merchant)) %>%
+  mutate(heatmap_calendar = map(column_nest,~heatmap.calendar(df = .,
+                                                  fini = '01-06-2021',
+                                                  ffin = '31-12-2021',
+                                                  ColorBrewer = "GnBu")))
+```
+
+::: panelset
+```{r results="asis", layout="l-body-outset", fig.heigth=2, fig.width=9}
+for(i in 1:length(heatmap_calendar$heatmap_calendar)){
+  cat("::: {.panel}\n")
+  cat("\n")
+  cat("###", heatmap_calendar$Merchant[i] , "{.panel-name}\n")
+  print(heatmap_calendar$heatmap_calendar[[i]])
+  cat("\n")
+  cat(":::\n")
+}
+```
+:::
+
+### Comentarios sobre el heatmap calendar `r emo::ji("hot_face")`
+
+`r emo::ji("point_right")` se puede observar con claridad el patrón de mayor nivel de ventas del merchant A los días sábados y domingos, mientrás que para los otros merchant caen las ventas en esos días.
+
+`r emo::ji("face_with_monocle")` nos permite observar el incremento en las ventas en ciertos días, asociados a festividades o a acciones particulares de parte de los merchant.
+
+`r emo::ji("mrs_claus")` se evidencia un claro incremento en las ventas en las días próximos a la nochebuena y navidad.
+
+## Comentarios finales `r emo::ji("wink")`
+
+`r emo::ji("large_blue_diamond")` En este post mostré dos estrategias visuales para analizar la estacionalidad en nuestras series de datos.
+
+`r emo::ji("gem")` La aplicación de programación funcional en R hace que los scripts sean más eficiente, al mismo tiempo que nos facilita la reutilización del código, la búsqueda de bugs, etc.
+
+`r emo::ji("folded_hands_medium_light_skin_tone")` gracias por leer mi blog. Cualquier comentario u opinión es siempre bienvenida `r emo::ji("open_hands_medium_light_skin_tone")`.

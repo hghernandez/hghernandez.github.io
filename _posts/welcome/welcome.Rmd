@@ -1,0 +1,26 @@
+---
+title: "Bienvenido a mi blog"
+description: |
+  Gracias por compartir este espacio conmigo, cuyo principal objetivo
+  es crear un espacio de intercambio y crecimiento mutuo.
+author:
+  - name: Hernán Hernández
+    url: https://example.com/norajones
+    #affiliation: Spacely Sprockets
+    affiliation_url: https://hghernandez.github.io/
+date: 07-18-2022
+output:
+  distill::distill_article:
+    self_contained: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+# Learn more about creating blogs with Distill at:
+# https://rstudio.github.io/distill/blog.html
+
+```
+
+
+

@@ -1,0 +1,342 @@
+---
+title: "Analisis RFM para la segmentacion de clientes"
+description: |
+  Los modelos RFM (recency, frequency, monetary) son ampliamente utilizados en las areas de marketing para la segmentación de sus clientes, pudiendo identificar los clientes más leales, o aquéllos que no debería perder. En este post voy a mostrarles como implementar un modelo RFM, asi que ¡¡allá vamos!!. 
+preview: imagenes/cluster.jpg
+author:
+  - name: Hernan Hernandez
+    url: https://example.com/norajones
+date: 2022-08-27
+output:
+  distill::distill_article:
+    self_contained: false
+    toc: true
+    toc_depth: 4
+    toc_float: true
+    code_folding: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  comment = "##",
+  R.options = list(width = 60)
+)
+```
+
+```{r include=FALSE}
+##Cargo el dataset y las funciones
+
+df <- read.csv("data/data.csv")
+
+#cargo la función normalize_table
+source("Modulos/normalize_table.R",encoding = "UTF-8")
+
+#Cargo la función rfm_category
+source("Modulos/rfm_category.R",encoding = "UTF-8")
+
+#Cargo la función segment_rfm
+source("Modulos/segment_rfm.R",encoding = "UTF-8")
+
+#Cargo las librerias
+
+library(dplyr)
+library(lubridate)
+library(tidyr)
+library(purrr)
+
+
+```
+
+# Introducción 🚀
+
+Como decíamos en la preview de este post, los modelos RFM son ampliamente utilizados en las áreas de marketing para segmentar sus carteras de clientes. Esta segmentación se realiza a partir de un scoring (que veremos más adelante), sobre tres parámetros:
+
+-   **recency**: identifica el tiempo transcurrido (generalmente en días), desde la última actividad del usuario y hasta la fecha de establecida para el modelo.
+
+-   **frequency**: refiere a con qué frecuencia realiza movimientos (de compra o venta) el usuario..
+
+-   **monetary**: refiere al valor o monto de los movimientos del usuario.
+
+El modelo **RFM** descansa sobre el siguiente principio :
+
+> El **80%** de tu **negocio** proviene del **20%** de tus **clientes** .
+
+En este post, iremos mostrando una serie de funciones que he creado para procesar los datos y obtener los segmentos:
+
+-   **normalize_table:** con esta función normalizamos los nombres del dataset para que puedan ser procesados por la función que genera el scoring.
+
+-   **rfm_category:** con esta función obtenemos la tabla RFM, la cuál contiene los puntajes para los parámetros (recency, frequency, monetary). Además, nos devuelve una serie de métricas que utilizaremos para explorar nuestros datos.
+
+-   **segment_rfm:** esta función nos permite crear los segmentos a partir del scoring de la tabla anterior (tabla RFM), más la definición de los *threshold.* También nos devuelve algunas métricas que nos permiten explorar nuestros resultados.
+
+# Exploración de los datos 🧐
+
+Utilizaremos un **dataset** tomado de [Kaggle](https://www.kaggle.com/datasets/carrie1/ecommerce-data?resource=download) que cuenta con información de ventas de una tienda minorista en línea registrada y con sede en el Reino Unido. El dataset muestra las operaciones en distintos países lo cuál resulta muy atractivo a la hora de implementar un modelo RFM que contemple los datos a este nivel de agregación.
+
+Vamos la usar el paquete **summarytools** para obtener una tabla resumen con los valores para todas las variables.
+
+```{r summary, results = 'asis'}
+summarytools::st_options(lang = 'es')
+summarytools::dfSummary(df, plain.ascii  = FALSE, 
+                                           style        = "grid", 
+                                           graph.magnif = 0.75, 
+                                           valid.col    = FALSE,
+                                           tmp.img.dir  = "/tmp")
+```
+
+En la tabla resumen puede verse que la mayoría (91,4%) de las operaciones se concentran en UK,y en menos medida en Alemania y Francia. Además, podemos ver la que la fecha de la factura (InvoiceDate) es una variable texto con formato m/dd/yyyy hh:mm. También debe destacarse el hecho de que existen cantidades vendidas con valores menores a 0.
+
+Considerando lo anterior transformamos la variable InvoiceDate a tipo Date (yyyy-mm-dd), excluimos cualquier valor númerico menor a 0 y seleccionamos los datos para los primeros 3 países, es decir UK, Alemania y Francia.
+
+Luego, agrupamos por pais, Date y CustomerID las cantidades vendidas y el monto de las mismas.
+
+```{r}
+df <- df %>%
+  mutate(Date= as_date(lubridate::mdy_hm(InvoiceDate)))%>%
+  group_by(Country,Date,CustomerID)%>%
+  summarise(Quantity= sum(Quantity),
+            Monetary= sum(UnitPrice)) %>%
+  filter(Country %in% c("United Kingdom","Germany","France")) %>%
+  filter_if(is.numeric, ~ .x > 0)
+
+DT::datatable(df,filter= 'top',options = list(pageLength = 5, dom = 'tip'))
+```
+
+En la tabla podemos visualizar como nos quedó conformado el dataset.
+
+# Implementamos el modelo 💡
+
+Esta etapa está compuesta por tres subetapas: a) normalización de la tabla, 2) creación de los puntajes RFM, 3) creación de los segmentos.
+
+### Normalización de la tabla ✂️
+
+Vamos a normalizar los nombres de nuestro dataset para hacerlos coincidir con los parámetros con los que la función *rfm_category* asigna los puntajes. Para ello usaremos la *normalize_table* que recibe el dataset con los actuales nombres de los parámetros.
+
+```{r}
+df <- normalize_table(df = df,
+                date = "Date",
+                id_costumer = "CustomerID",
+                cantidad = "Quantity",
+                monto = "Monetary")
+
+DT::datatable(df,filter= 'top',options = list(pageLength = 5, dom = 'tip'))
+```
+
+### 
+
+### Creamos los puntajes RFM 🛍️
+
+La función *rfm_category,* admite 4 parámetros:
+
+-   **df**: el dataset a procesar
+
+-   **fecha_analisis**: representa la fecha de implementación del modelo y es útil para determinar los días desde la última venta (recency).
+
+-   **bins**: nos permite indicar el número de segmentos en los cuáles queremos cortar nuestra población.
+
+-   **group_by**: nos permite utilizar distintos niveles de agregación. Como el CostumerID puede repetirse entre los países, con este parámetro nos aseguramos que ese valor sea único.
+
+    A su vez la función nos devuelve:
+
+-   **resultado_rfm**: una tabla que contiene el scoring
+
+-   **heatmap**: un gráfico que muestra el promedio del monto para las combinaciones de recency y de frequency.
+
+-   **threshold:** una tabla con los umbrales para recency, frequency y monetary.
+
+    Sin más preámbulos, miremos el resultado de la función.
+
+```{r}
+tabla_rfm <- df %>%
+  mutate(email= "cliente@rfm.com")%>%
+  split(.$Country) %>%
+  map(~ rfm_category(df = .,
+                     fecha_analisis = '2011-12-09',
+                     bins = 4,
+                     group_by = "Country"))
+```
+
+```{r xaringan-panelset, echo=FALSE}
+xaringanExtra::use_panelset()
+
+```
+
+::: panelset
+```{r results="asis"}
+for(i in 1:length(tabla_rfm)){
+  cat("::: {.panel}\n")             
+  cat("##", unique(tabla_rfm[[i]]$resultado_rfm$Country) , "{.panel-name}\n") 
+  print(tabla_rfm[[i]]$heatmap)
+  cat("\n")
+  print(kableExtra::kbl(tabla_rfm[[i]]$threshold,
+                      format.args = list(decimal.mark = ',', big.mark = "."), col.names = rep(c("lower","upper"),3),
+                      caption = paste0("Puntos de corte scoring. ",unique(tabla_rfm[[i]]$resultado_rfm$Country),"."))%>%
+        kableExtra::add_header_above(c("Recency" = 2, "Frequency" = 2, "Monetary"= 2),color = "#191C3C", bold = T,align = "center") %>%   
+kableExtra::kable_paper())
+  cat("\n") 
+  cat(":::\n")
+}
+```
+:::
+
+Aquí podemos ver los primeros 10 registros de la tabla RFM para UK.
+
+```{r}
+DT::datatable(tabla_rfm[[3]]$resultado_rfm %>% head(10),filter= 'top',options = list(pageLength = 5, dom = 'tip'))
+```
+
+#### ¿Cómo se asignan los puntajes? ¿Que representan esos valores? 🤔
+
+Cómo se puede observar en la tabla anterior, al dataset se le han añadido 3 columnas (recency_cut, frequency_cut y monetary_cut), con valores de 1 a 4 [^1](según la cantidad de cortes o bins elegidos podría ser 5), que deben interpretarse del siguiente modo:
+
+[^1]: la cantidad de cortes seleccionados divide a la población en partes iguales. Si seleccionamos 4 cortes, dividimos a la población en cuartiles cada uno de los cuáles representa el 25%. Si decidiéramos utilizar 5 cortes, dividiríamos la población en quintiles, representando cada uno un 20%.
+
+**recency**: la puntuación se genera asignando a los clientes con las fechas de ventas más recientes la máxima puntuación (4 en este caso), y aquellos con fechas de ventas más distante reciben una clasificación de actualidad de 1.
+
+**frequency**: a los usuarios con mayor cantidad de unidades vendidas se les asigna una puntuación más alta (4) y a los de menor cantidad una puntuación de 1.
+
+**monetary**: se asigna sobre la base del monto total de las ventas al usuario en el período considerado para el análisis. A los clientes con mayores montos de venta se les asigna una puntuación más alta, mientras que a los que tienen montos de venta más bajos se les asigna una puntuación de 1.
+
+Los *heatmap*, confirman -aunque en menor medida para Francia- que los montos promedios más altos povienen que los usuarios con mayor cantidad de bienes vendidos y con recientes operaciones.
+
+Cuando se implementó el modelo con bins= 5, para Francia y Alemania se obtuvo un gráfico inconsistente (no completo todos sus casilleros), por lo que se decidió utilizar 4 cortes.
+
+### Creamos los segmentos ✏️
+
+Para la creación de los segmentos utilizaremos la función *segment_rfm*, a la cuál debemos pasarle 3 grupos de parámetros:
+
+-   **tabla_rfm:** es la tabla resultante de la función anterior y contiene cada uno de nuestros costumer con un puntaje de recency, frequency y monetary asignado.
+
+-   **nombres_segmentos:** es un vector de datos con la cantidad de nombres comos segmentos queramos utilizar. En nuestro caso utilizaremos 7 segmentos (incluyendo los sin clasificar) para hacerlo más comprensible.
+
+-   **umbrales de los segmentos**: llevan los nombres recency_lower, recency_upper, frequency_lower, frequency_upper, monetary_lower, monetary_upper y son vectores que contienen los umbrales con los cuáles agrupamos en segmentos los scoring rfm.
+
+Esta función nos retorna:
+
+**tabla_rfm**: que contiene cada uno de nuestros costumer segmentados
+
+**bar_chart**: gráfico de barras que contabiliza los costumer según el puntaje de recency, frequency y monetary. Representa una estrategia visual para observar la composición de nuestros clientes.
+
+**Composicion_segmento**: muestra la frecuencia absoluta y relativa de los costumer según los segmentos.
+
+**bar_chart_seg**: gráfico de barras con la composición por segmentos.
+
+**impact_segment**:contabiliza en términos absolutos y relativos el impacto que tienen los segmentos sobre las ventas y el monto en el país.
+
+#### Comenzamos por definir los segmentos y los umbrales 📝
+
+Como se mencionó anteriormente trabajaremos con los siguientes segmentos:
+
+-   **Champions**: es el segmento que reúne el máximo puntaje en los tres parámetros. Para las ventas en UK este segmento concentra el 43% de las mismas y el 40% del monto facturado.
+
+-   **Loyalist**: son los clientes que tienen el máximo puntaje en la cantidad de productos comprados. Representan el segundo segmento en términos de monto facturado.
+
+-   **Big Spenders**: este segmento tiene el máximo puntaje en los montos de compras. Si bien en término de cantidad adquirida no son influyente, respresentan el tercer segmento en monto facturado.
+
+-   **Promising:** este segmento muestra puntajes de RFM por encima del resto, pero por debajo de los **champions**. Están tímidos pero son sensibles de estimular.
+
+-   **New costumer:** tienen alto puntaje en recency, es decir han realizado compras recientes aunque no por mucha cantidad ni de montos altos. Debemos estimularlos.
+
+-   **Hibernating:** muestran los puntajes más bajos en las tres categorías.
+
+Asignamos los umbrales
+
+-   **recency_lower** : 4,1,1,2,4,1
+
+-   **recency_upper**: 4,4,4,4,4,1
+
+-   **frequency_lower**: 4,4,1,2,1,1
+
+-   **frequency_upper**: 4,4,4,4,4,1
+
+-   **monetary_lower**: 4,1,4,2,1,1
+
+-   **monetary_upper**: 4,4,4,4,4,1
+
+```{r}
+nombres_segmentos <- c("Champions","Loyalist","Big Spenders",
+                       "Promising","New Customers","Hibernating")
+recency_lower <-   c(4,1,1,2,4,1)
+recency_upper <-   c(4,4,4,4,4,1)
+frequency_lower <- c(4,4,1,2,1,1)
+frequency_upper <- c(4,4,4,4,4,1)
+monetary_lower <-  c(4,1,4,2,1,1)
+monetary_upper <-  c(4,4,4,4,4,1)
+
+rfm <- list()
+
+for(i in 1:length(tabla_rfm)){
+  rfm[[i]] <- segment_rfm(tabla_rfm = tabla_rfm[[i]],
+                          nombres_segmentos = nombres_segmentos,
+                          recency_lower,
+                          recency_upper,
+                          frequency_lower,
+                          frequency_upper,
+                          monetary_lower,
+                          monetary_upper
+  )
+}
+```
+
+::: panelset
+```{r segmentos, results='asis'}
+for(i in 1:length(rfm)){
+
+  cat("::: {.panel}\n")             
+
+  cat("###", unique(rfm[[i]]$tabla_rfm$Country), "{.panel-name}\n")
+cat("\n")
+cat("#### Distribución de los clientes según el scoring (RFM")
+print(rfm[[i]]$bar_chart)
+cat("\n")
+cat("#### Composición de los segmentos")
+cat("\n")
+
+  print(kableExtra::kbl(rfm[[i]]$Composicion_segmento,
+
+        format.args = list(decimal.mark = ',', big.mark = ".")) %>%
+
+     kableExtra::kable_paper())
+
+ cat("\n")
+ cat("#### Gráfico composición de los segmentos")
+ print(rfm[[i]]$bar_chart_seg)
+ cat("\n")
+
+ cat("#### Impacto de los segmentos en las Ventas y el Monto")
+
+  cat("\n")
+
+  print(kableExtra::kbl(rfm[[i]]$impact_segment,
+        col.names = c("Segmentos","Ventas","%","Monto","%"),
+                      
+        format.args = list(decimal.mark = ',', big.mark = ".")) %>%
+        
+        kableExtra::kable_paper())
+
+  cat("\n")
+
+  cat(":::\n")
+
+}
+```
+:::
+
+#### ¿Que podemos decir de los segmentos? 🔈
+
+👉🏼 Los patrones y tendencias son más fácil de obervar en UK en razón de una mayor cantidad de observaciones. El *bar_chart* que combina los scoring de los tres parámetros muestra que los clientes que realizan compras de mayor valor además tienen altos puntajes de recency y de frequency (esquina superior derecha). En el opuesto, los que tienen menores puntajes de monetary coincide con los menores también de recency y frequency. Esto se da también en los clientes de Alemania y Francia pero con menos nitidez.
+
+👉🏼Un punto interesante es el segmento *Usuals*, que representa a los clientes no clasificados en los umbrales y que es el principal segmento de UK y Alemania. El porcentaje de este segmento está directamente vinculado a los objetivos de la compañía en relación a las políticas de fidelización y en términos estadísticos a la *sensibilidad y* *especificidad* con la que creamos los umbrales. En nuestro caso. si tomáramos umbrales más amplios lograríamos diminuir ese conjunto de cliente (usuals) pero corremos el riesgo de por ejemplo clasificar como Champions clientes que no lo son o viceversa, como Hibernating a clientes que están activos. También podríamos generar nuevos segmentos para incluir este grupo de clientes. Esta es una discusión por demás interesante que requiere de un dialogo fluido entre la estadística y el marketing.
+
+👉🏼Salvo para Francia, los segmentos Champions y Loyalist concentran la mayor parte de las ventas y la facturación (Monto). Los Big Spenders en estos países representan el tercer segmento en cuanto a facturación. Los Promising son una oportunidad para el negocio ya que son sensibles a promociones y estrategias de marketing.
+
+# Comentarios finales 😉
+
+🔦Son varias cosas las que me surgen para este apartado final pero voy a abocarme sólo a algunas de ellas. Por un lado, la oportunidad que representan los análisis RFM para el diálogo entre la estadística, los datos y el apoyo a los *decision makers*.
+
+🔦Por otro lado,en este post he mostrado 3 funciones desarrolladas íntegramente en R que pueden adaptarse para su uso en distintos escenarios y que cuentan con la posibilidad de ajustar los parámetros centrales para lograr robustez en los resultados.
+
+Sin dudas hay mucho camino por recorrer aún en el mundo de los datos., así que sigamos viajando✈️.

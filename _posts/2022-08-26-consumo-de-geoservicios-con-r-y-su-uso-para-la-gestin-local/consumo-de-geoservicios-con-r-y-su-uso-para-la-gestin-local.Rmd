@@ -1,0 +1,372 @@
+---
+title: "Consumo de geoservicios con R y su uso para la gestión local"
+description: |
+  En este post voy a mostrar el uso de algunas librerias de R para el consumo de geoservicios. Además, veremos como visualizar las capas de geoservicios con leaflet y haremos algunas operaciones para apoyar la gestión local. Espero que este mundo los atrape tanto como a mí.
+preview: imagenes/gchu_sig.png
+author:
+  - name: Hernan Hernandez
+    url: https://example.com/norajones
+date: 2022-08-26
+output:
+  distill::distill_article:
+    self_contained: false
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    code_folding: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  comment = "##",
+  R.options = list(width = 60)
+)
+```
+
+```{r echo=FALSE}
+library(sf)
+library(leaflet)
+library(dplyr)
+library(tidyr)
+library(purrr)
+library(ggplot2)
+library(leaflet.extras2)
+library(osrm)
+
+```
+
+# Contexto
+
+En muchas áreas de la vida social, económica, cultural, etc, la comprensión del espacio o "lo espacial" se vuelve fundamental para la comprensión de ciertas dinámicas o tendencias. En el área de salud esto se hace más evidente ya que en gran parte la salud de un individuo o de una comunidad está determinada por como esta configurado este espacio que lo rodea.
+
+Por eso aquí vamos a trabajar un ejemplo del uso de los **geoservicios** para la gestión local en salud, pero ¿que son los geoservicios?.
+
+Vamos a decir que son un Servicio Web específico que permite intercambiar información únicamente de componente geográfica. Para la generación y utilización de los estos se utilizan lenguajes específicos y protocolos estándares definidos.
+
+### ¿Que es un IDE? 🤔
+
+Es la sigla para representar el término Infraestructura de Datos Espaciales, que cumple la función de permitir:
+
+> ...acceder a datos, productos y servicios geoespaciales, publicados en internet bajo estándares y normas definidos, asegurando su interoperabilidad y uso, como así también la propiedad sobre la información por parte de los organismos que la publican y su responsabilidad en la actualización (IDERA)
+
+En Argentina, este rol lo cumple [**IDERA**](https://www.idera.gob.ar/ "IDERA"), una comunidad geoespacial que involucra actores estatales, de la sociedad civil y privados.
+
+# A los datos
+
+Luego de la pequeña intro vamos a los datos. El ejemplo que utilizaremos para revisar el uso de las librerias corresponde a los geoservicios de la ciudad de Gualeguaychú, que además de ser mi ciudad de nacimiento, recientemente ha disponibilizado esta información para la comunidad en el siguiente [link](https://mapa.gualeguaychu.gov.ar/?zoom=13&lat=-33.008&lng=-58.5111&layers=argenmap "link").
+
+Realizaremos la lectura del servicio con la libreria *sf,* la la usaremos la lo largo de este post ya que nos permite una amplia gama de operaciones. Es importante saber que existen dos tipos de servicios WMS y WFS [^1].
+
+[^1]: **WMS**: permite la visualización de información geográfica a partir de una representación de ésta, de una imagen del mundo real para un área solicitada por el usuario. Puede organizarse en una o más capas de datos que pueden visualizarse u ocultarse una a una. **WFS** : permite el acceso y consulta de los atributos de un vector (feature) que representa información geográfica como un río, una ciudad o un lago, con una geometría descrita por un conjunto de coordenadas. El servicio WFS permite no solo visualizar la información tal y como permite un WMS, sino también consultarla y editarla libremente
+
+```{r }
+#Guardamos la URL en un objeto
+
+geo_gchu <- "https://geo.gualeguaychu.gov.ar/geoserver/gis/wms?Request=GetCapabilities"
+
+#Exploramos las capas
+
+layers <- st_layers("WFS:https://geo.gualeguaychu.gov.ar/geoserver/gis/wms?Request=GetCapabilities")
+head(layers$name,10)
+
+```
+
+La función **st_layers** de **sf** nos permite explorar todas las capas disponibles en el geoservicio. En nuestro caso tomaremos 3:
+
+-   Establecimientos de Salud (gis:est_salud)
+
+-   Areas programáticas (gis:areas_programaticas)
+
+-   Radios Censales (gis:radios_censales)
+
+## Mapeamos las capas
+
+Miremos ahora 👀 las capas en un mapa, y usaremos en esta oportunidad la librería **leaflet** que nos permite acceder a mapas interactivos muy poderosos. Además, utilizaremos la libreria **leaflet.extras2** que nos da la posibilidad de ver características extras a nuestras capas.
+
+Usaremos [**Argenmap**](https://www.ign.gob.ar/AreaServicios/Argenmap/Introduccion "https://www.ign.gob.ar/AreaServicios/Argenmap/Introduccion")como tesela [^2] base y luego iremos agregando las respectivas capas. Además, generaremos un control de capas que nos va a permitir seleccionar cuál o cuáles queremos ver.
+
+[^2]: Las teselas vectoriales son paquetes de datos geográficos, empaquetados en «mosaicos» predefinidos de forma aproximadamente cuadrada para su transferencia a través de la web.
+
+```{r, layout="l-page"}
+leaflet() %>%
+  addTiles(urlTemplate = "https://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0/mapabase_gris@EPSG%3A3857@png/{z}/{x}/{-y}.png",
+           tileOptions(tms = TRUE,maxZoom = 14), attribution = '<a target="_blank" href="https://www.ign.gob.ar/argenmap/argenmap.jquery/docs/#datosvectoriales" style="color: black; text-decoration: underline; font-weight: normal;">Datos IGN Argentina // OpenStreetMap</a>',
+           group = "Argenmap") %>% #Aquí agregamos Argenmap
+  addWMS(
+    geo_gchu,
+    layers = "radios_censales",
+    options = WMSTileOptions(format = "image/png", transparent = TRUE,info_format = "text/html", tiled=FALSE),
+    group = "Radios Censales"
+  ) %>% #Agregamos layer de Radios Censales
+  addWMS(
+    geo_gchu,
+    layers = "areas_programaticas",
+    options = WMSTileOptions(format = "image/png", transparent = TRUE,info_format = "text/html", tiled=FALSE),
+    group = "Areas Programáticas"
+  )  %>% #Agregamos layer de Areas Programáticas
+  addWMS(
+    geo_gchu,
+    layers = "est_salud",
+    options = WMSTileOptions(format = "image/png", transparent = TRUE,info_format = "text/html", tiled=FALSE),
+    group = "Est de salud"
+  ) %>% #Agregamos layer de Establecimientos de Salud
+   addLayersControl(
+    baseGroups = "Argenmap",
+    overlayGroups = c("Areas Programáticas","Est de salud","Radios Censales"),
+    options = layersControlOptions(collapsed = FALSE)) %>%
+  setView(lng = -58.52597, lat = -33.00606,zoom = 11)
+```
+
+Si cliquean sobre el área programática pueden obtener información del responsable del área, ubicación, teléfono. Si en cambio cliquean el radio censal les devuelve información de la cantidad de hogares, personas e incluso el área 🙌🏼.
+
+## Tiempo de ejercicio 🏋️
+
+El acceso al sistema de salud puede ser abordado desde distintas perspectivas, barreras culturales, geográficas, presencia de medios de transporte, etc.
+
+En este ejercicio intentaré abordar la accesibilidad que tiene cada área programática a un centro de salud, para poder determinar en términos de tiempo y distancia cuál tiene una mayor accesibilidad y cuál menor.
+
+Antes de avanzar, cuándo hablamos de **área programática** hacemos referencia al área de influencia de un determinado centro asistencial que se expresa, aunque no únicamente, en un **polígono geográfico**. La idea central es que las personas que viven en esa área se referencian con el centro de salud o los centros de salud contenidos en ésta [^3].
+
+[^3]: No necesariamente las personas buscan atención siguiendo esta racionalidad, ya que existen múltiples razones para orientarse por otro establecimiento, como puede ser la complejidad del tratamiento requerido.
+
+### Metodolgia 🧾
+
+La metodología que voy a usar para determinar la distancia por área programática al centro de salud, es asignar los radios censales a cada uno de los poligonos que representan el área programática.
+
+Luego, voy a calcular los centroides de cada radio censal y voy a medir la distancia en tiempo (a pie) y en kilómetros hasta el centro o los centros de salud que contiene el area.
+
+Resulta un poco confuso 🙄, veamos el código.
+
+### Extraemos la informacion de las capas
+
+```{r }
+#Extraemos las areas programaticas
+areas_programaticas <- st_read("WFS:https://geo.gualeguaychu.gov.ar/geoserver/gis/wms?Request=GetCapabilities","gis:areas_programaticas")
+
+#Extraemos los establecimientos de salud
+
+est_salud <- st_read("WFS:https://geo.gualeguaychu.gov.ar/geoserver/gis/wms?Request=GetCapabilities", "gis:est_salud")
+
+#Extraemos los radios censales
+
+radios_censales <- st_read("WFS:https://geo.gualeguaychu.gov.ar/geoserver/gis/wms?Request=GetCapabilities","gis:radios_censales")
+
+radios_censales <- radios_censales %>% 
+  filter(!gml_id %in% c("radios_censales.2","radios_censales.11"))
+
+
+```
+
+### Homogeneizamos las proyecciones
+
+```{r}
+
+#homogeneizamos las proyecciones
+
+# Centros de salud
+csalud <- est_salud %>% st_drop_geometry()
+
+csalud <- st_as_sf(csalud[c("fid","nombre","longitud","latitud")], coords = c("longitud", "latitud"), 
+         crs = 4326, remove= FALSE) %>% st_transform(crs = 4326)
+
+
+est_salud <- st_transform(est_salud, 4326)
+
+# Areas programaticas
+
+areas_programaticas <- st_transform(areas_programaticas, 4326)
+
+areas_programaticas <- st_cast(areas_programaticas, "GEOMETRYCOLLECTION") %>% st_collection_extract("POLYGON")
+
+# Radios censales
+radios_censales <- st_transform(radios_censales, 4326)
+
+radios_censales <- st_cast(radios_censales, "GEOMETRYCOLLECTION") %>% st_collection_extract("POLYGON")
+
+```
+
+#### Calculamos los centroides y los visualizamos
+
+Primero utilizamos la función **st_centroid** de **sf** y lo agregamos como layers a nuestro mapa.
+
+```{r}
+
+radios_censales$centroides <- radios_censales %>%  st_centroid() %>%
+  st_geometry() 
+
+centroides <- radios_censales %>%
+  select(gml_id)%>%
+  st_centroid() %>%
+  st_as_sf()
+```
+
+```{r layout="l-page"}
+leaflet() %>%
+  addTiles(urlTemplate = "https://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0/mapabase_gris@EPSG%3A3857@png/{z}/{x}/{-y}.png",
+           tileOptions(tms = TRUE,maxZoom = 14), attribution = '<a target="_blank" href="https://www.ign.gob.ar/argenmap/argenmap.jquery/docs/#datosvectoriales" style="color: black; text-decoration: underline; font-weight: normal;">Datos IGN Argentina // OpenStreetMap</a>',
+           group = "Argenmap") %>% #Aquí agregamos Argenmap
+  addWMS(
+    geo_gchu,
+    layers = "radios_censales",
+    options = WMSTileOptions(format = "image/png", transparent = TRUE,info_format = "text/html", tiled=FALSE),
+    group = "Radios Censales"
+  ) %>% #Agregamos layer de Radios Censales
+  addWMS(
+    geo_gchu,
+    layers = "areas_programaticas",
+    options = WMSTileOptions(format = "image/png", transparent = TRUE,info_format = "text/html", tiled=FALSE),
+    group = "Areas Programáticas"
+  )  %>% #Agregamos layer de Areas Programáticas
+  addWMS(
+    geo_gchu,
+    layers = "est_salud",
+    options = WMSTileOptions(format = "image/png", transparent = TRUE,info_format = "text/html", tiled=FALSE),
+    group = "Est de salud"
+  ) %>% #Agregamos layer de Establecimientos de Salud
+  addCircles(data= centroides,group = "centroides",color = "black")%>% #Agregamos el circulo con los centroides
+   addLayersControl(
+    baseGroups = "Argenmap",
+    overlayGroups = c("Areas Programáticas","Est de salud","Radios Censales","centroides"),
+    options = layersControlOptions(collapsed = FALSE)) %>%
+  setView(lng = -58.52597, lat = -33.00606,zoom = 11)
+```
+
+#### Hacemos los joins 🤝
+
+En esta etapa vamos a asignar los **centros de salud** y los radios censales a cada **área programática,** para luego poder hacer los cálculos. Utilizamos la función **st_join** de **sf.**
+
+```{r}
+join <- st_join(areas_programaticas,csalud,join= st_intersects)
+
+```
+
+Veamos que los centros de salud han sido asignado a areas programatica
+
+```{r}
+DT::datatable(join %>% st_drop_geometry() %>% head(5))
+```
+
+Hacemos la asignación de los radios censales a las áreas programáticas.
+
+```{r}
+join2 <- st_join(join,radios_censales,join= st_intersects)
+```
+
+Revisamos el resultado.
+
+```{r}
+DT::datatable(join2 %>% st_drop_geometry() %>% head(5))
+```
+
+#### Medimos las distancias 📏
+
+Llegamos a una etapa por demás interesante, en la que obtendremos las distancias entre los centroides y los centros de salud. Para ello, utilizo el paquete OSRM que se basa en el proyecto que lleva el mismo nombre y que es un Servicio de enrutamiento basado en datos de **OpenStreetMap**. Vale decir, que el resultado de las mediciones es la distancia en tiempo a pie 🚶y en kilómetros.
+
+Vale aclarar que en el código de lectura de los radios censales se excluyen los radios 11 (Pueblo Belgrano) y 2, ya que abarcan territorio muy por fuera del ejido.
+
+Para tener las distancias, voy a:
+
+-   crear un data frame con los puntos de los establecimientos de salud y los centroides por area programatica.
+
+    ```{r}
+    #Armo un dataframe de distancias
+
+    distancias <- st_join(est_salud %>%
+           select("fid","nombre")%>%
+           rename("geomcs"="geom"),join2 %>%
+             select("gml_id.y","centroides"), join= st_intersects) %>%
+      distinct()
+    ```
+
+-   separar el data frame anterior en uno de origen (from) y uno de destino (to).
+
+    ```{r}
+    from <- distancias %>%
+      select(gml_id.y,centroides)%>%
+      st_drop_geometry(geomcs) %>%
+      st_as_sf()
+
+    to <- distancias %>%
+      select(fid,nombre,geomcs)
+
+    ```
+
+-   obtener las distancias
+
+    ```{r}
+    rutas <- list()
+
+    for(i in 1:nrow(from)){
+
+    rutas[[i]] <- osrmRoute(src = from[i,],
+              dst = to[i,],
+              overview = FALSE)
+    }
+
+    df <- do.call(rbind,rutas)
+    ```
+
+-   unificar los dataset.
+
+    ```{r}
+    distancias_x_cs <- cbind(distancias[,c(1,2)] %>% st_drop_geometry(),df)
+    ```
+
+    #### Mostramos las distancias por área programática
+
+    ```{r}
+    join %>%
+      st_drop_geometry()%>%
+      select(gml_id,fid)%>%
+      left_join(distancias_x_cs, by= "fid") %>%
+      DT::datatable(options = list(pageLength = 25, dom = 'tip'))
+    ```
+
+#### Resumen distancias tiempo "a pie"
+
+```{r}
+join %>%
+  st_drop_geometry()%>%
+  select(gml_id,fid)%>%
+  left_join(distancias_x_cs, by= "fid") %>%
+  group_by(gml_id)%>%
+  filter(!is.na(duration)) %>%
+  summarise(min= round(min(duration),1),
+            prom= round(mean(duration),1),
+            mediana= round(median(duration),1),
+            max= round(max(duration),1)) %>%
+  arrange(prom)%>%
+  kableExtra::kbl(format.args = list(big.mark = ".",
+                                     decimal.mark= ",")) %>%
+  kableExtra::kable_classic_2()
+```
+
+#### Resumen distancias en kilómetros
+
+```{r}
+join %>%
+  st_drop_geometry()%>%
+  select(gml_id,fid)%>%
+  left_join(distancias_x_cs, by= "fid") %>%
+  group_by(gml_id)%>%
+  filter(!is.na(duration)) %>%
+  summarise(min= round(min(distance),1),
+            prom= round(mean(distance),1),
+            mediana= round(median(distance),1),
+            max= round(max(distance),1)) %>%
+  arrange(prom)%>%
+  kableExtra::kbl(format.args = list(big.mark = ".",
+                                     decimal.mark= ",")) %>%
+  kableExtra::kable_classic_2()
+```
+
+### Comentarios finales 🔈
+
+✔️ En relación al objetivo principal del ejercicio, puede observase que el área programática 4, es la que tiene mayor accesibilidad con un promedio de 2,5 minutos y 1,1 Km al centro de salud San Francisco. En el opuesto el área programática 5 mostró la mayor distancia con un promedio de 5,1 minutos y 3,4 Km al centro de salud Suburbio Sur. Sin dudas un promedio de 5 minutos al centro de salud en el área con menor accesibilidad da cuentas de una amplia cobertura del sistema de salud.
+
+✔️En lo que respecta a la metodología sin dudas muestra limitaciones. Una de ellas es el hecho de que algunos radios censales caen en mas de un área programática. Por ej: el radio censal 13 cae dentro de Villa Maria, Suburbio Sur, Médanos. Esto implica que un habitante de esta zona cuenta con mayor oferta. Otra limitación es haber tomado los centroides, se podría mejorar esto tomando puntos al azar dentro de los radios censales.
+
+✔️Por ultimo espero haber podido mostrar la potencialidad que tiene estos datos y la necesidad de bregar porque los mismos sigan siendo de acceso publico y se mantengan los estándares de calidad e interoperabilidad.

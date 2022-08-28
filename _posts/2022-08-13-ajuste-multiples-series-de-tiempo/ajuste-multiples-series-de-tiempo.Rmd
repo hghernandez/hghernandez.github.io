@@ -1,0 +1,419 @@
+---
+title: "Ajuste de multiples series de tiempo y multiples modelos"
+description: |
+  Es muy frecuente que en el quehacer cotidiano como científicos de datos nos encontremos ante la necesidad de evaluar múltiples modelos de series de tiempo para más de una de ellas. 
+  Este post muestra como el uso de algunas paquetes como Modeltime, Timetk y sknifedatar puede ser de una gran ayuda para hacer esta tarea más eficiente.
+preview: imagenes/preview.jpg
+author:
+  - name: Hernan Hernandez
+    url: https://example.com/norajones
+date: 2022-08-13
+output:
+  distill::distill_article:
+    self_contained: false
+    toc: true
+    toc_depth: 2
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  comment = "##",
+  R.options = list(width = 60)
+)
+```
+
+## Activamos las librerias `r emo::ji("books")`
+
+```{r}
+
+library(modeltime)
+library(rsample)
+library(parsnip)
+library(recipes)
+library(workflows)
+library(dplyr)
+library(tidyr)
+library(sknifedatar)
+library(kableExtra)
+library(DT)
+library(lubridate)
+library(httr)
+```
+
+```{r echo=FALSE}
+source("Modulos/plot_time_series.R",encoding = "UTF-8")
+source("Modulos/view_times_series.R",encoding = "UTF-8")
+
+```
+
+## Introducción `r emo::ji("nerd_face")`
+
+El objetivo principal de este post es compartir una serie de paquetes que son realmente útiles para resolver la compleja tarea de **ajustar múltiples series de tiempo y múltiples modelos**`r emo::ji("flexed_biceps_medium_light_skin_tone")`. Asimismo, hay una breve explicación teórica -que lejos está de pretender ser exhaustiva- de los aspectos más sobresalientes de los modelos de series de tiempo ajustados.
+
+### Cargamos el conjunto de datos
+
+Para mostrar el funcionamiento de los paquetes, vamos a utilizar el **Índice de Precios al Consumidor: Nivel General (mensual)** por región, desde el 2017 y hasta julio de 2022. Vale decir que el uso de estos datos es sólo ilustrativo ya que proyectar el IPC demandaría combinar marcos conceptuales económicos y políticos para enriquecer los resultados. El data set se obtuvo utilizado la **API se series de tiempo** del sitio oficial [datos.gob.ar](https://datos.gob.ar/dataset/jgm_3/archivo/jgm_3.13) A continuación se muestra como consumir los datos.
+
+```{r}
+
+# Hacemos un GET sobre el endpoint
+obj = GET("https://apis.datos.gob.ar/series/api/series?ids=145.3_INGCUYUAL_DICI_M_34,145.3_INGNEAUAL_DICI_M_33,145.3_INGNOAUAL_DICI_M_33,145.3_INGPATUAL_DICI_M_39,145.3_INGGBAUAL_DICI_M_33,145.3_INGNACUAL_DICI_M_38,145.3_INGPAMUAL_DICI_M_38&format=csv")
+
+# Extraemos el contenido
+content <- httr::content(obj,encoding = "UTF-8") 
+
+# Creamos un dataframe con los datos
+data <- data.frame("Mes"= content$indice_tiempo,
+      "GBA"= content$ipc_ng_gba_tasa_variacion_mensual,
+      "Cuyo"= content$ipc_ng_cuyo_tasa_variacion_mensual,
+      "NEA"=content$ipc_ng_nea_tasa_variacion_mensual,
+      "NOA"= content$ipc_ng_noa_tasa_variacion_mensual,
+      "Pampeana"= content$ipc_ng_pampeana_tasa_variacion_mensual,
+      "Patagonia"= content$ipc_ng_patagonia_tasa_variacion_mensual,
+      "Nacional"= content$ipc_ng_nacional_tasa_variacion_mensual) %>%
+  pivot_longer(!Mes,names_to = "Region", values_to = "IPC") %>%
+  mutate(IPC = round(IPC * 100,1)) %>%
+  rename("date"= "Mes", "value"= "IPC")
+
+
+```
+
+Ahora echemos un vistazo `r emo::ji("detective_medium_skin_tone")` a los datos. Para eso cree una función que recibe como parámetros un dataframe, el valor para el *eje x*, *eje y*, el *tipo de escala* y un campo para *facetar el gráfico*. Además agregamos una linea de suavización de la tendencia para observar el comportamiento a lo largo del tiempo.
+
+```{r view_times_series, layout="l-body-outset", fig.heigth=2, fig.width=9}
+
+view_times_series(df = data,
+                  x = "date",
+                  y = "value",
+                  facet = "Region",
+                  title = "IPC Nivel General (base 2016) por región",
+                  y_lab = "IPC",
+                  scales = "free_y"
+)
+
+```
+
+## Workflow
+
+La siguiente figura resume con claridad el flujo de trabajo que se implementa, contrastando la evaluación de una única serie y varios modelos y de varias series y varios modelos.
+
+![Figura 1: Workflow evaluación de múltiples modelos en múltiples series de tiempo. Obtenido de <https://rafael-zambrano-blog-ds.netlify.app/posts/workflowsets_timeseries>](framework_multiple.png)
+
+La Figura 1 muestra la integración de dos flujos de trabajos, por un lado la de múltiples series de tiempo y modelos y por otro lado el de entrenamiento de los modelos.
+
+### Workflow modelado
+
+Este workflow es implementado en el framework *Tidymodels*, y comprende en general las siguientes etapas y librerias:
+
+<!-- # ```{r tidymodels,out.width = "75%", fig.align = "center", echo=FALSE, fig.cap = 'Workflow tidymodels', fig.show = "hold"} -->
+
+<!-- # knitr::include_graphics("tidymodels.png") -->
+
+<!-- #  -->
+
+<!-- # ``` -->
+
+![Figura 2: Workflow tidymodels](tidymodels.png) El paquete **Modeltime**, representa una extensión del framework **Tidymodels**, de ahí que compartan casi todo el workflow, pero agrega al análisis de series temporales una serie de funciones que permiten la escalabilidad en la evaluación de múltiples modelos de series de tiempo. Para ello, implementan un tipo de pronóstico que definen como [pronóstico anidado](https://business-science.github.io/modeltime/articles/nested-forecasting.html) y que implica *"convertir muchas series de tiempo en un conjunto de datos anidados y luego ajustar muchos modelos a cada uno de los datos anidados"*. Haremos uso en esta ocasión del paquete \_\_sknifedatar\_ que nos permite vincular **modeltime** con el conjunto de datos. El workflow implica entonces:
+
+1.  Preprocesamiento de las series
+2.  Instanciación de los modelos
+3.  Entrenamiento de los modelos
+4.  Evaluación de los modelos
+5.  Selección del mejor modelo
+6.  Entrenamiento del mejor modelo
+7.  Proyección de datos
+8.  Guardamos las proyecciones y la tabla de precisión del mejor modelo
+
+## Preprocesamiento `r emo::ji("memo")`
+
+Esta etapa de la evaluación de los modelos de series de tiempo abarca aquéllas acciones de transformación de los datos para que sean adecuados para el modelado. Aquí se hace uso del paquete **recipes()** que nos permite organizar las transformaciones para el preprocesamiento de la información de forma tal que sea lo más reproducible posible.
+
+#### Anido la serie de dato por región
+
+```{r}
+ipc_nested = data  %>% nest(nested_column=-Region) 
+
+ipc_nested
+```
+
+#### Armamos las recetas `r emo::ji("bowl_with_spoon")`
+
+La receta 1, es la utilizada por los modelos de redes neuronales.
+
+```{r}
+receta_IPC_1 = recipe(value ~ ., data = data %>% select(-Region)) %>%
+  step_date(date, features = c("month", "quarter", "year"), ordinal = TRUE)
+
+```
+
+Esta receta es utilizada por el resto de los modelos. Una de las transformaciones que se hace en esta receta es la conversión de la variable de fecha a una variable de tipo numérica, compatible con los modelos lineales.
+
+```{r}
+receta_IPC_2 = receta_IPC_1  %>%
+  step_mutate(date_num = as.numeric(date)) %>% 
+  step_normalize(date_num) %>%
+  step_rm(date) %>% 
+  step_dummy(date_month)
+```
+
+El paquete **recipes()** facilita la transformación y el procesado de los datos a través de las funciones *step()*, que a modo general se utilizan del siguiente modo:
+
+-   **step_corr():** Elimina las variables que tienen una correlación alta con otras variables.
+
+-   **step_center():** Centra los datos para que tengan media cero.
+
+-   **step_scale():** Normaliza los datos para que tengan desvío estandar de 1.
+
+Estos dos pasos son importantes porque cuando los predictores son numéricos, la escala en la que se miden, así como la magnitud de su varianza pueden influir en gran medida en el modelo. Si no se igualan de los predictores, aquellos que se midan en una escala mayor o que tengan más varianza dominarán el modelo aunque no sean los que más relación tienen con la variable respuesta.
+
+-   **step_rm():** eliminará las variables en función de su nombre, tipo o función.
+
+Además, existen una diversidad de funciones asociadas a **step** con diversos usos como: imputar datos a través de diferentes estrategias (utilizando la media, un modelo lineal, etc), para transformaciones individuales (transformación logarítmica, exponencial, etc), ordenamiento, retrasos un muchas otras funciones.
+
+## Modelos `r emo::ji("gear")`
+
+#### Modelo ARIMA boosted
+
+Los modelos ARIMA fueron propuestos por Box y Jenkins en 1976 y se caracterizan por realizar predicciones de una variable utilizando como información la contenida en los valores pasados de la serie temporal. La sigla ARIMA refiere a **Media Móvil Integrada AutoRegresiva**. Los términos autorregresivos (AR) se refieren a los retrasos de la serie diferenciada, los términos de promedio móvil (MA) se refieren a los retrasos de los errores e I es el número de diferencia utilizado para hacer que la serie de tiempo sea estacionaria.
+
+Un punto muy importante a destacar es la implementación en este modelo del principio de **boosting** para mejorar los errores del modelado. La idea detrás del boosting es generar múltiples modelos de predicción secuenciualmente,y que cada uno de estos tome los resultados del modelo anterior, para generar un modelo más "fuerte", con mejor poder predictivo y mayor estabilidad en sus resultados. Para conseguir un modelo más fuerte, se emplea un algoritmo de optimización, este caso Gradient Descent (descenso de gradiente). Durante el entrenamiento, los parámetros de cada modelo débil son ajustados iterativamente tratando de encontrar el mínimo de una función objetivo, que puede ser la proporción de error en la clasificación, el área bajo la curva (AUC), la raíz del error cuadrático medio (RMSE) o alguna otra. Cada modelo es comparado con el anterior. Si un nuevo modelo tiene mejores resultados, entonces se toma este como base para realizar nuevas modificaciones. Si, por el contrario, tiene peores resultados, se regresa al mejor modelo anterior y se modifica ese de una manera diferente. **XGBoost** o **Extreme Gradient Boosting**, es uno de los algoritmos de machine learning de tipo *supervisado* más usados en la actualidad. Este algoritmo se caracteriza por obtener buenos resultados de predicción con relativamente poco esfuerzo, en muchos casos equiparables o mejores que los devueltos por modelos más complejos computacionalmente, en particular para problemas con datos heterogéneos.
+
+```{r}
+
+m_arima_boosted_ipc <- workflow() %>% 
+  add_recipe(receta_IPC_1) %>% 
+  add_model(arima_boost() %>% set_engine(engine = "auto_arima_xgboost"))
+
+```
+
+#### Modelo seasonal
+
+```{r}
+
+m_seasonal_ipc <- seasonal_reg() %>%
+  set_engine("stlm_arima")
+
+```
+
+#### Modelo prophet boosted
+
+Prophet es un procedimiento para pronosticar datos de series temporales basado en un modelo aditivo en el que las tendencias no lineales se ajustan a la estacionalidad anual, semanal y diaria, además de los efectos de las vacaciones. Este paquete de código abierto ha sido lanzado por el equipo **Core Data Science de Facebook**.
+
+```{r}
+
+m_prophet_boost_ipc <- workflow() %>% 
+  add_recipe(receta_IPC_1) %>% 
+  add_model(prophet_boost(mode='regression') %>%set_engine("prophet_xgboost"))  
+
+```
+
+#### Modelo NNetar
+
+Este modelo se basa en redes neuronales con una sola capa oculta y entradas retrasadas para realizar los pronósticos. Es un modelo autogresivo no lineal. Los modelos de redes neuronales o ANN (sigla del ingles Artificial Neural Network), tienen la capacidad de aprender con el ejemplo y están basados en los sistemas neuronales biológicos. La red neuronal es un conjunto de unidades de entrada/salida conectadas en las que cada conexión tiene un peso asociado. En la fase de aprendizaje, la red aprende ajustando los pesos para predecir la etiqueta de clase correcta de las entradas dadas. A modo general todos los modelos de ANN están compuesto de: + **Capa de entrada:** esta representada por los datos (inputs) del modelo. La cantidad de columnas que contiene nuestro archivo indicara la cantidad de *neuronas* o units del modelo.
+
+-   **Capa oculta:** recibe los valores de la capa de entrada, ponderados por los pesos. El conjunto de pesos son inicializados aleatoriamente al principio y luego optimizados, mediante algoritmos de aprendizajes.
+
+-   **Capa de salida:** indica el tipo de salida que pretendemos obtener, por ejemplo si nuestro objetivo es obtener una clasificación binaria (0 y 1), entonces la capa de salida contendrá una sóla neurona.
+
+-   **Función de activación:** se especifica en la capa oculta y tiene el objetivo de **agregar no linealidad a nuestra red** y le permite aprender características complejas. Algunos ejemplos de estas funciones son: **Sigmoid o Logística**, **ReLu (unidad lineal rectificada)**, **tanh (tangente hiperbólica)**,etc.
+
+La **neurona** es la unidad funcional de los modelos ANN. Dentro de cada neurona ocurren dos operaciones: la suma ponderada de sus entradas y la aplicación de una función de activación
+
+```{r}
+
+m_nnetar_ipc <- workflow() %>%
+  add_recipe(receta_IPC_1) %>%
+  add_model(nnetar_reg() %>% set_engine("nnetar"))
+
+```
+
+#### Modelo MARS
+
+MARS hace referencia a la sigla del inglés **Multivariate Adaptive Regression Splines**, es decir es un modelo de Regresión Splines Multivariante Adaptativo. De lo anterior se desprenden varios términos que es convienente abordar, como son:
+
+-   **Splines:** Spline es una función especial definida por polinomios y representa una técnica de **regresión no paramétrica** (es decir dónde no debemos asumir linealidad en nuestros datos). En esta técnica, el conjunto de datos se divide en contenedores a intervalos o puntos que llamamos nudos, por lo que puede decirse que *"los splines son series de segmentos polinómicos unidos entre sí en nudos"*.
+
+Los modelos MARS superan una de las principales desventajas de la regresión polinomial y que es la dependencia de indicar a priori en que puntos de la variable *x* deben hacerse los puntos de corte. Para ello el procedimiento evalúa cada punto de datos para cada predictor como un nudo y crea un modelo de regresión lineal con las características candidatas. El procedimiento MARS primero buscará el punto único en el rango de valores de *x* donde dos relaciones lineales diferentes entre *x* e *y* logran el error más pequeño
+
+```{r}
+m_mars_ipc <- workflow() %>%
+  add_recipe(receta_IPC_2) %>%
+  add_model(mars(mode = "regression") %>% set_engine("earth"))
+
+```
+
+#### Modelo Elastic net
+
+El modelo **Elastic net** forma parte del conjunto de modelos de regresión penalizados, que incluyen los modelos: Ridge, Lasso y Elastic net.
+
+Son particularmente útiles en el contexto de tener un conjunto de datos multivariado con una gran gran cantidad de variables, dónde el método de los mínimos cuadrados (ajuste del modelo lineal), funciona de forma incorrecta. El pincipio general implica la incorporación de un término de **penalización** que tiene como consecuencia reducir (es decir, encoger) los valores de los coeficientes hacia cero. Esto permite que las variables menos contributivas tengan un coeficiente cercano a cero o igual a cero. El modelo **Elastic net** penaliza con la **norma L1** y la **norma L2** (es decir las que se utilizan en los modelos Lasso y Ridge). Esto implica: + **norma L1:** es implementada en los modelos de regresión Lasso. Aquí la penalización tiene el efecto de obligar a algunas de las estimaciones de los coeficientes, con una contribución menor al modelo, a ser exactamente iguales a cero. Es una buena alternativa para la selección de variables con el fin de reducir la complejidad de los modelos. + **norma L2:** es implementada en los modelos de regresión Ridge. En este caso la penalización tiene como efecto la reducción de los coeficientes de regresión, de modo que las variables con una contribución menor al resultado, tengan sus coeficientes cercanos a cero.
+
+```{r}
+
+m_glmnet_ipc <- workflow() %>%
+  add_recipe(receta_IPC_2) %>%
+  add_model(linear_reg(penalty = 0.01, mixture = 0.1) %>% set_engine("glmnet"))
+
+
+
+```
+
+#### Modelo Xgboost: Árbol de decisión
+
+Más arriba se detallo la estrategia de **boosting** para reducir los errores del modelado como así también las implementaciones del paquete **xgboost** en R y en otros lenguajes de uso cotidiano en ciencias de datos. Pero queda abordar las características más destacadas de los **árboles de decisión** como modelos de *machine learning*. Los **árboles de decisión** son modelos predictivos formados por reglas binarias (si/no) con las que se consigue repartir las observaciones en función de sus atributos y predecir así el valor de la variable respuesta. Se engloban dentro de los **modelos supervisados de machine learning** es decir conocemos a priori la variable de respuesta o dependiente que utilizan técnicas **no paramétricas**. Además de los algoritmos **Gradiente Boosting**, existen otros como **random forest** para implementar este tipo de métodos.
+
+```{r }
+m_xgboost_ipc <- workflow() %>%
+  add_recipe(receta_IPC_2) %>%
+  add_model(boost_tree() %>% set_engine("xgboost"))
+
+
+```
+
+## Entrenamiento y Evaluación de los modelos `r emo::ji("person_cartwheeling_medium_skin_tone")`
+
+#### Partición
+
+Como primera medida dividimos nuestros datos en datos para entrenamiento (training) y para test (evaluación). Para este caso separamos en 80% y 20%
+
+```{r}
+split <- 0.80
+
+```
+
+#### Tabla modelos `r emo::ji("man_teacher")`
+
+Creamos una tabla que contiene todos los modelos en evaluación y dónde se guardarán las métricas con las que compararemos la performance de los diferentes modelos.
+
+```{r}
+model_table_ipc <- modeltime_multifit(
+  serie = ipc_nested,
+  .prop = split,
+  m_arima_boosted_ipc,
+  m_seasonal_ipc,
+  m_prophet_boost_ipc,
+  m_nnetar_ipc,
+  m_mars_ipc,
+  m_glmnet_ipc,
+  m_xgboost_ipc
+  
+)
+```
+
+#### Modelos evaluados y su correspondiente métrica de error
+
+En la tabla se encuentran analizadas las siguientes métricas de errores:
+
+-   **mae (Mean Absolute Error):** es la media de los errores en valor absoluto. Esta métrica favorece modelos que predicen muy bien la gran mayoría de observaciones aunque en unas pocas se equivoque por mucho.
+-   **mape (Mean Absolute Porcentaje Error):** representa el valor absoluto expresado en porcentaje, es decir indica en término porcentuales la diferencia promedio entre el valor predicho y el observado.
+-   **mase (Mean Absolute Scaled Error):** esta metrica surge de un algoritmo que compara los pronósticos con el resultado de un enfoque de pronóstico *ingenuo*. El **pronóstico ingenuo** se genera en cualquier paso igualando el pronóstico actual con el resultado del último paso de tiempo sin considerar *ningún patrón estacional*.
+-   **smape (Symmetric Mean Absolute Percentage Error):** representa la diferencia absoluta entre *predicho* y *observado* dividido por la mitad de la suma de los valores absolutos *predichos* y *observado*. El valor de este cálculo se suma para cada punto ajustado *t* y se divide nuevamente por el número de puntos ajustados n.
+-   **rmse:** Es la raíz de la media de los errores elavados al cuadrado. Sirve para evalur el ajuste del modelo y sus valores se expresan en la misma unidad de la variable proyectada.
+-   **rsq:** representa el coeficiente de determinación utilizando una correlación. Toma valores entre 0 y 1 y describe el % de variación de la variable de respuesta (transacciones, UT, etc.) explicado por la variable que puede explicarse por el modelo.
+
+```{r echo=FALSE}
+DT::datatable(model_table_ipc$models_accuracy %>%
+              mutate(across(where(is.numeric), round, 2)),
+              options = list(pageLength = 150))
+```
+
+## Selección del mejor modelo `r emo::ji("sunglasses")`
+
+Luego de la evaluación de los distintos modelos, en base a las métricas antes descriptas, en esta etapa se selecciona el modelo que mejor se ajusta a los datos, es decir, aquél que menos error contenga en la estimación. En este punto, se hace uso del método **modeltime_multibestmodel** de la libreria **timetk** y se toma el **RMSE** como métrica para seleccionar el mejor modelo.
+
+```{r}
+best_model_ipc <- modeltime_multibestmodel(
+  .table = model_table_ipc$table_time,
+  .metric = "rmse",
+  .minimize = TRUE,
+  .forecast = FALSE
+  
+)
+```
+
+### Modelo con mejor performance por región
+
+```{r echo=FALSE}
+
+best.model <- cbind(Region= best_model_ipc$Region[1],Modelo=best_model_ipc$calibration[[1]]$.model_desc)
+
+for(i in 2:length(best_model_ipc$calibration)){
+
+  best.model <- rbind(best.model,
+                      cbind(Region=best_model_ipc$Region[i],Modelo=best_model_ipc$calibration[[i]]$.model_desc))
+  
+}
+
+best.model <-as.data.frame(best.model)
+best.model
+```
+
+## Entrenamiento del mejor modelo `r emo::ji("gym")`
+
+En esta etapa entrenamos nuestros datos con el modelo que mejor performance mostró según la métrica seleccionada en el paso anterior (en nuestro caso RMSE). Además se entrena el modelo con la totalidad de datos.
+
+```{r}
+model_refit_ipc <- modeltime_multirefit(best_model_ipc)
+```
+
+```{r echo= FALSE}
+#Uno los datos con la tabla original
+
+model_refit_ipc <- model_refit_ipc %>% 
+  bind_cols(data %>% 
+              nest(nested_column=-Region) %>% 
+              select(-Region) %>% 
+              rename(actual_data=nested_column)
+  )
+
+```
+
+## Forecast datos `r emo::ji("crystal_ball")`
+
+Por último, con el modelo entrenado realizamos nuestras proyecciones (forecast), para un período de 12 meses
+
+```{r}
+forecast_ipc <- modeltime_multiforecast(models_table = model_refit_ipc,
+                                           .h = 12,
+                                           .prop = split)
+```
+
+```{r echo=FALSE}
+forecast <- cbind(Region= forecast_ipc$Region[1],forecast_ipc$nested_forecast[[1]])
+
+
+for(i in 2:length(forecast_ipc$nested_forecast)){
+  
+  forecast <- rbind(forecast,
+                    cbind(Region= forecast_ipc$Region[i],forecast_ipc$nested_forecast[[i]]))
+}
+
+forecast_ipc <- forecast %>%
+  rename_with(.,~  gsub(".","",.x, fixed= TRUE)) %>% #Quito los puntos de los nombres
+  rename(Mes = index, IPC= value)
+
+is.na(forecast_ipc)<-sapply(forecast_ipc, is.infinite)
+is.na(forecast_ipc)<-sapply(forecast_ipc, is.nan)
+```
+
+```{r  layout="l-body-outset", fig.heigth=3, fig.width=10}
+grafico <- forecast_ipc %>%
+  plot_time_series(df = .,title = "Forecast IPC",
+                   y_lab = "IPC mensual",
+                   x = "Mes",
+                   y = "IPC",
+                   facet = "Region")
+grafico
+
+
+```
+
+## Algunos comentarios `r emo::ji("speaking_head")`
+
+`r emo::ji("backhand_index_pointing_right_medium_light_skin_tone")` No quedan dudas de que los autores de los paquetes aquí revisados (Modeltime, Timetk, Sknifedatar), han hecho un gran aporte para facilitar el trabajo con series de tiempo y modelos en contextos habituales dónde la labor se centra en ajustar mútiples modelos y series de tiempo.
+
+Este flujo de trabajo de ha sido muy útil y espero que les sea a quién lea este material `r emo::ji("open_hands")`.

@@ -1,0 +1,2503 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1"/>
+  <meta name="generator" content="distill" />
+
+  <style type="text/css">
+  /* Hide doc at startup (prevent jankiness while JS renders/transforms) */
+  body {
+    visibility: hidden;
+  }
+  </style>
+
+ <!--radix_placeholder_import_source-->
+ <!--/radix_placeholder_import_source-->
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  { color: #00769e; background-color: #f1f3f5; }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span { color: #00769e; } /* Normal */
+code span.al { color: #ad0000; } /* Alert */
+code span.an { color: #5e5e5e; } /* Annotation */
+code span.at { color: #657422; } /* Attribute */
+code span.bn { color: #ad0000; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #00769e; } /* ControlFlow */
+code span.ch { color: #20794d; } /* Char */
+code span.cn { color: #8f5902; } /* Constant */
+code span.co { color: #5e5e5e; } /* Comment */
+code span.cv { color: #5e5e5e; font-style: italic; } /* CommentVar */
+code span.do { color: #5e5e5e; font-style: italic; } /* Documentation */
+code span.dt { color: #ad0000; } /* DataType */
+code span.dv { color: #ad0000; } /* DecVal */
+code span.er { color: #ad0000; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #ad0000; } /* Float */
+code span.fu { color: #4758ab; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #5e5e5e; } /* Information */
+code span.kw { color: #00769e; } /* Keyword */
+code span.op { color: #5e5e5e; } /* Operator */
+code span.ot { color: #00769e; } /* Other */
+code span.pp { color: #ad0000; } /* Preprocessor */
+code span.sc { color: #5e5e5e; } /* SpecialChar */
+code span.ss { color: #20794d; } /* SpecialString */
+code span.st { color: #20794d; } /* String */
+code span.va { color: #111111; } /* Variable */
+code span.vs { color: #20794d; } /* VerbatimString */
+code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
+</style>
+
+
+  <!--radix_placeholder_meta_tags-->
+  <title>Consumo de geoservicios con R y su uso para la gestión local</title>
+
+  <meta property="description" itemprop="description" content="En este post voy a mostrar el uso de algunas librerias de R para el consumo de geoservicios. Además, veremos como visualizar las capas de geoservicios con leaflet y haremos algunas operaciones para apoyar la gestión local. Espero que este mundo los atrape tanto como a mí."/>
+
+
+  <!--  https://schema.org/Article -->
+  <meta property="article:published" itemprop="datePublished" content="2022-08-26"/>
+  <meta property="article:created" itemprop="dateCreated" content="2022-08-26"/>
+  <meta name="article:author" content="Hernan Hernandez"/>
+
+  <!--  https://developers.facebook.com/docs/sharing/webmasters#markup -->
+  <meta property="og:title" content="Consumo de geoservicios con R y su uso para la gestión local"/>
+  <meta property="og:type" content="article"/>
+  <meta property="og:description" content="En este post voy a mostrar el uso de algunas librerias de R para el consumo de geoservicios. Además, veremos como visualizar las capas de geoservicios con leaflet y haremos algunas operaciones para apoyar la gestión local. Espero que este mundo los atrape tanto como a mí."/>
+  <meta property="og:locale" content="en_US"/>
+
+  <!--  https://dev.twitter.com/cards/types/summary -->
+  <meta property="twitter:card" content="summary"/>
+  <meta property="twitter:title" content="Consumo de geoservicios con R y su uso para la gestión local"/>
+  <meta property="twitter:description" content="En este post voy a mostrar el uso de algunas librerias de R para el consumo de geoservicios. Además, veremos como visualizar las capas de geoservicios con leaflet y haremos algunas operaciones para apoyar la gestión local. Espero que este mundo los atrape tanto como a mí."/>
+
+  <!--/radix_placeholder_meta_tags-->
+  <!--radix_placeholder_rmarkdown_metadata-->
+
+  <script type="text/json" id="radix-rmarkdown-metadata">
+  {"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","description","preview","author","date","output"]}},"value":[{"type":"character","attributes":{},"value":["Consumo de geoservicios con R y su uso para la gestión local"]},{"type":"character","attributes":{},"value":["En este post voy a mostrar el uso de algunas librerias de R para el consumo de geoservicios. Además, veremos como visualizar las capas de geoservicios con leaflet y haremos algunas operaciones para apoyar la gestión local. Espero que este mundo los atrape tanto como a mí.\n"]},{"type":"character","attributes":{},"value":["imagenes/gchu_sig.png"]},{"type":"list","attributes":{},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","url"]}},"value":[{"type":"character","attributes":{},"value":["Hernan Hernandez"]},{"type":"character","attributes":{},"value":["https://example.com/norajones"]}]}]},{"type":"character","attributes":{},"value":["2022-08-26"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["distill::distill_article"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["self_contained","toc","toc_depth","toc_float","code_folding"]}},"value":[{"type":"logical","attributes":{},"value":[false]},{"type":"logical","attributes":{},"value":[true]},{"type":"integer","attributes":{},"value":[3]},{"type":"logical","attributes":{},"value":[true]},{"type":"logical","attributes":{},"value":[true]}]}]}]}
+  </script>
+  <!--/radix_placeholder_rmarkdown_metadata-->
+  
+  <script type="text/json" id="radix-resource-manifest">
+  {"type":"character","attributes":{},"value":["consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/anchor-4.2.2/anchor.min.js","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/bowser-1.9.3/bowser.min.js","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/crosstalk-1.2.0/css/crosstalk.min.css","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/crosstalk-1.2.0/js/crosstalk.js","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/crosstalk-1.2.0/js/crosstalk.js.map","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/crosstalk-1.2.0/js/crosstalk.min.js","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/crosstalk-1.2.0/js/crosstalk.min.js.map","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/crosstalk-1.2.0/scss/crosstalk.scss","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/datatables-binding-0.22/datatables.js","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/datatables-css-0.0.0/datatables-crosstalk.css","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/distill-2.2.21/template.v2.js","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/dt-core-1.11.3/css/jquery.dataTables.extra.css","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/dt-core-1.11.3/css/jquery.dataTables.min.css","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/dt-core-1.11.3/js/jquery.dataTables.min.js","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/header-attrs-2.14/header-attrs.js","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/htmlwidgets-1.5.4/htmlwidgets.js","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/jquery-3.6.0/jquery-3.6.0.js","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/jquery-3.6.0/jquery-3.6.0.min.js","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/jquery-3.6.0/jquery-3.6.0.min.map","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/kePrint-0.0.1/kePrint.js","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/leaflet-1.3.1/images/layers-2x.png","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/leaflet-1.3.1/images/layers.png","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/leaflet-1.3.1/images/marker-icon-2x.png","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/leaflet-1.3.1/images/marker-icon.png","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/leaflet-1.3.1/images/marker-shadow.png","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/leaflet-1.3.1/leaflet.css","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/leaflet-1.3.1/leaflet.js","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/leaflet-binding-2.1.1/leaflet.js","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/leafletfix-1.0.0/leafletfix.css","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/lfx-wms-1.0.0/leaflet.wms-bindings.js","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/lfx-wms-1.0.0/leaflet.wms.js","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/lightable-0.0.1/lightable.css","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/popper-2.6.0/popper.min.js","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/proj4-2.6.2/proj4.min.js","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/Proj4Leaflet-1.0.1/proj4leaflet.js","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/rstudio_leaflet-1.3.1/images/1px.png","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/rstudio_leaflet-1.3.1/rstudio_leaflet.css","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/tippy-6.2.7/tippy-bundle.umd.min.js","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/tippy-6.2.7/tippy-light-border.css","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/tippy-6.2.7/tippy.css","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/tippy-6.2.7/tippy.umd.min.js","consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/webcomponents-2.0.0/webcomponents.js","imagenes/gchu_sig.PNG"]}
+  </script>
+  <!--radix_placeholder_navigation_in_header-->
+  <!--/radix_placeholder_navigation_in_header-->
+  <!--radix_placeholder_distill-->
+
+  <style type="text/css">
+
+  body {
+    background-color: white;
+  }
+
+  .pandoc-table {
+    width: 100%;
+  }
+
+  .pandoc-table>caption {
+    margin-bottom: 10px;
+  }
+
+  .pandoc-table th:not([align]) {
+    text-align: left;
+  }
+
+  .pagedtable-footer {
+    font-size: 15px;
+  }
+
+  d-byline .byline {
+    grid-template-columns: 2fr 2fr;
+  }
+
+  d-byline .byline h3 {
+    margin-block-start: 1.5em;
+  }
+
+  d-byline .byline .authors-affiliations h3 {
+    margin-block-start: 0.5em;
+  }
+
+  .authors-affiliations .orcid-id {
+    width: 16px;
+    height:16px;
+    margin-left: 4px;
+    margin-right: 4px;
+    vertical-align: middle;
+    padding-bottom: 2px;
+  }
+
+  d-title .dt-tags {
+    margin-top: 1em;
+    grid-column: text;
+  }
+
+  .dt-tags .dt-tag {
+    text-decoration: none;
+    display: inline-block;
+    color: rgba(0,0,0,0.6);
+    padding: 0em 0.4em;
+    margin-right: 0.5em;
+    margin-bottom: 0.4em;
+    font-size: 70%;
+    border: 1px solid rgba(0,0,0,0.2);
+    border-radius: 3px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  d-article table.gt_table td,
+  d-article table.gt_table th {
+    border-bottom: none;
+  }
+
+  .html-widget {
+    margin-bottom: 2.0em;
+  }
+
+  .l-screen-inset {
+    padding-right: 16px;
+  }
+
+  .l-screen .caption {
+    margin-left: 10px;
+  }
+
+  .shaded {
+    background: rgb(247, 247, 247);
+    padding-top: 20px;
+    padding-bottom: 20px;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  .shaded .html-widget {
+    margin-bottom: 0;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  .shaded .shaded-content {
+    background: white;
+  }
+
+  .text-output {
+    margin-top: 0;
+    line-height: 1.5em;
+  }
+
+  .hidden {
+    display: none !important;
+  }
+
+  d-article {
+    padding-top: 2.5rem;
+    padding-bottom: 30px;
+  }
+
+  d-appendix {
+    padding-top: 30px;
+  }
+
+  d-article>p>img {
+    width: 100%;
+  }
+
+  d-article h2 {
+    margin: 1rem 0 1.5rem 0;
+  }
+
+  d-article h3 {
+    margin-top: 1.5rem;
+  }
+
+  d-article iframe {
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    margin-bottom: 2.0em;
+    width: 100%;
+  }
+
+  /* Tweak code blocks */
+
+  d-article div.sourceCode code,
+  d-article pre code {
+    font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+  }
+
+  d-article pre,
+  d-article div.sourceCode,
+  d-article div.sourceCode pre {
+    overflow: auto;
+  }
+
+  d-article div.sourceCode {
+    background-color: white;
+  }
+
+  d-article div.sourceCode pre {
+    padding-left: 10px;
+    font-size: 12px;
+    border-left: 2px solid rgba(0,0,0,0.1);
+  }
+
+  d-article pre {
+    font-size: 12px;
+    color: black;
+    background: none;
+    margin-top: 0;
+    text-align: left;
+    white-space: pre;
+    word-spacing: normal;
+    word-break: normal;
+    word-wrap: normal;
+    line-height: 1.5;
+
+    -moz-tab-size: 4;
+    -o-tab-size: 4;
+    tab-size: 4;
+
+    -webkit-hyphens: none;
+    -moz-hyphens: none;
+    -ms-hyphens: none;
+    hyphens: none;
+  }
+
+  d-article pre a {
+    border-bottom: none;
+  }
+
+  d-article pre a:hover {
+    border-bottom: none;
+    text-decoration: underline;
+  }
+
+  d-article details {
+    grid-column: text;
+    margin-bottom: 0.8em;
+  }
+
+  @media(min-width: 768px) {
+
+  d-article pre,
+  d-article div.sourceCode,
+  d-article div.sourceCode pre {
+    overflow: visible !important;
+  }
+
+  d-article div.sourceCode pre {
+    padding-left: 18px;
+    font-size: 14px;
+  }
+
+  d-article pre {
+    font-size: 14px;
+  }
+
+  }
+
+  figure img.external {
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.1);
+    padding: 18px;
+    box-sizing: border-box;
+  }
+
+  /* CSS for d-contents */
+
+  .d-contents {
+    grid-column: text;
+    color: rgba(0,0,0,0.8);
+    font-size: 0.9em;
+    padding-bottom: 1em;
+    margin-bottom: 1em;
+    padding-bottom: 0.5em;
+    margin-bottom: 1em;
+    padding-left: 0.25em;
+    justify-self: start;
+  }
+
+  @media(min-width: 1000px) {
+    .d-contents.d-contents-float {
+      height: 0;
+      grid-column-start: 1;
+      grid-column-end: 4;
+      justify-self: center;
+      padding-right: 3em;
+      padding-left: 2em;
+    }
+  }
+
+  .d-contents nav h3 {
+    font-size: 18px;
+    margin-top: 0;
+    margin-bottom: 1em;
+  }
+
+  .d-contents li {
+    list-style-type: none
+  }
+
+  .d-contents nav > ul {
+    padding-left: 0;
+  }
+
+  .d-contents ul {
+    padding-left: 1em
+  }
+
+  .d-contents nav ul li {
+    margin-top: 0.6em;
+    margin-bottom: 0.2em;
+  }
+
+  .d-contents nav a {
+    font-size: 13px;
+    border-bottom: none;
+    text-decoration: none
+    color: rgba(0, 0, 0, 0.8);
+  }
+
+  .d-contents nav a:hover {
+    text-decoration: underline solid rgba(0, 0, 0, 0.6)
+  }
+
+  .d-contents nav > ul > li > a {
+    font-weight: 600;
+  }
+
+  .d-contents nav > ul > li > ul {
+    font-weight: inherit;
+  }
+
+  .d-contents nav > ul > li > ul > li {
+    margin-top: 0.2em;
+  }
+
+
+  .d-contents nav ul {
+    margin-top: 0;
+    margin-bottom: 0.25em;
+  }
+
+  .d-article-with-toc h2:nth-child(2) {
+    margin-top: 0;
+  }
+
+
+  /* Figure */
+
+  .figure {
+    position: relative;
+    margin-bottom: 2.5em;
+    margin-top: 1.5em;
+  }
+
+  .figure .caption {
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 12px;
+    line-height: 1.5em;
+  }
+
+  .figure img.external {
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.1);
+    padding: 18px;
+    box-sizing: border-box;
+  }
+
+  .figure .caption a {
+    color: rgba(0, 0, 0, 0.6);
+  }
+
+  .figure .caption b,
+  .figure .caption strong, {
+    font-weight: 600;
+    color: rgba(0, 0, 0, 1.0);
+  }
+
+  /* Citations */
+
+  d-article .citation {
+    color: inherit;
+    cursor: inherit;
+  }
+
+  div.hanging-indent{
+    margin-left: 1em; text-indent: -1em;
+  }
+
+  /* Citation hover box */
+
+  .tippy-box[data-theme~=light-border] {
+    background-color: rgba(250, 250, 250, 0.95);
+  }
+
+  .tippy-content > p {
+    margin-bottom: 0;
+    padding: 2px;
+  }
+
+
+  /* Tweak 1000px media break to show more text */
+
+  @media(min-width: 1000px) {
+    .base-grid,
+    distill-header,
+    d-title,
+    d-abstract,
+    d-article,
+    d-appendix,
+    distill-appendix,
+    d-byline,
+    d-footnote-list,
+    d-citation-list,
+    distill-footer {
+      grid-template-columns: [screen-start] 1fr [page-start kicker-start] 80px [middle-start] 50px [text-start kicker-end] 65px 65px 65px 65px 65px 65px 65px 65px [text-end gutter-start] 65px [middle-end] 65px [page-end gutter-end] 1fr [screen-end];
+      grid-column-gap: 16px;
+    }
+
+    .grid {
+      grid-column-gap: 16px;
+    }
+
+    d-article {
+      font-size: 1.06rem;
+      line-height: 1.7em;
+    }
+    figure .caption, .figure .caption, figure figcaption {
+      font-size: 13px;
+    }
+  }
+
+  @media(min-width: 1180px) {
+    .base-grid,
+    distill-header,
+    d-title,
+    d-abstract,
+    d-article,
+    d-appendix,
+    distill-appendix,
+    d-byline,
+    d-footnote-list,
+    d-citation-list,
+    distill-footer {
+      grid-template-columns: [screen-start] 1fr [page-start kicker-start] 60px [middle-start] 60px [text-start kicker-end] 60px 60px 60px 60px 60px 60px 60px 60px [text-end gutter-start] 60px [middle-end] 60px [page-end gutter-end] 1fr [screen-end];
+      grid-column-gap: 32px;
+    }
+
+    .grid {
+      grid-column-gap: 32px;
+    }
+  }
+
+
+  /* Get the citation styles for the appendix (not auto-injected on render since
+     we do our own rendering of the citation appendix) */
+
+  d-appendix .citation-appendix,
+  .d-appendix .citation-appendix {
+    font-size: 11px;
+    line-height: 15px;
+    border-left: 1px solid rgba(0, 0, 0, 0.1);
+    padding-left: 18px;
+    border: 1px solid rgba(0,0,0,0.1);
+    background: rgba(0, 0, 0, 0.02);
+    padding: 10px 18px;
+    border-radius: 3px;
+    color: rgba(150, 150, 150, 1);
+    overflow: hidden;
+    margin-top: -12px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  /* Include appendix styles here so they can be overridden */
+
+  d-appendix {
+    contain: layout style;
+    font-size: 0.8em;
+    line-height: 1.7em;
+    margin-top: 60px;
+    margin-bottom: 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    color: rgba(0,0,0,0.5);
+    padding-top: 60px;
+    padding-bottom: 48px;
+  }
+
+  d-appendix h3 {
+    grid-column: page-start / text-start;
+    font-size: 15px;
+    font-weight: 500;
+    margin-top: 1em;
+    margin-bottom: 0;
+    color: rgba(0,0,0,0.65);
+  }
+
+  d-appendix h3 + * {
+    margin-top: 1em;
+  }
+
+  d-appendix ol {
+    padding: 0 0 0 15px;
+  }
+
+  @media (min-width: 768px) {
+    d-appendix ol {
+      padding: 0 0 0 30px;
+      margin-left: -30px;
+    }
+  }
+
+  d-appendix li {
+    margin-bottom: 1em;
+  }
+
+  d-appendix a {
+    color: rgba(0, 0, 0, 0.6);
+  }
+
+  d-appendix > * {
+    grid-column: text;
+  }
+
+  d-appendix > d-footnote-list,
+  d-appendix > d-citation-list,
+  d-appendix > distill-appendix {
+    grid-column: screen;
+  }
+
+  /* Include footnote styles here so they can be overridden */
+
+  d-footnote-list {
+    contain: layout style;
+  }
+
+  d-footnote-list > * {
+    grid-column: text;
+  }
+
+  d-footnote-list a.footnote-backlink {
+    color: rgba(0,0,0,0.3);
+    padding-left: 0.5em;
+  }
+
+
+
+  /* Anchor.js */
+
+  .anchorjs-link {
+    /*transition: all .25s linear; */
+    text-decoration: none;
+    border-bottom: none;
+  }
+  *:hover > .anchorjs-link {
+    margin-left: -1.125em !important;
+    text-decoration: none;
+    border-bottom: none;
+  }
+
+  /* Social footer */
+
+  .social_footer {
+    margin-top: 30px;
+    margin-bottom: 0;
+    color: rgba(0,0,0,0.67);
+  }
+
+  .disqus-comments {
+    margin-right: 30px;
+  }
+
+  .disqus-comment-count {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.4);
+    cursor: pointer;
+  }
+
+  #disqus_thread {
+    margin-top: 30px;
+  }
+
+  .article-sharing a {
+    border-bottom: none;
+    margin-right: 8px;
+  }
+
+  .article-sharing a:hover {
+    border-bottom: none;
+  }
+
+  .sidebar-section.subscribe {
+    font-size: 12px;
+    line-height: 1.6em;
+  }
+
+  .subscribe p {
+    margin-bottom: 0.5em;
+  }
+
+
+  .article-footer .subscribe {
+    font-size: 15px;
+    margin-top: 45px;
+  }
+
+
+  .sidebar-section.custom {
+    font-size: 12px;
+    line-height: 1.6em;
+  }
+
+  .custom p {
+    margin-bottom: 0.5em;
+  }
+
+  /* Styles for listing layout (hide title) */
+  .layout-listing d-title, .layout-listing .d-title {
+    display: none;
+  }
+
+  /* Styles for posts lists (not auto-injected) */
+
+
+  .posts-with-sidebar {
+    padding-left: 45px;
+    padding-right: 45px;
+  }
+
+  .posts-list .description h2,
+  .posts-list .description p {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", Arial, sans-serif;
+  }
+
+  .posts-list .description h2 {
+    font-weight: 700;
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .posts-list h2.post-tag {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+    padding-bottom: 12px;
+  }
+  .posts-list {
+    margin-top: 60px;
+    margin-bottom: 24px;
+  }
+
+  .posts-list .post-preview {
+    text-decoration: none;
+    overflow: hidden;
+    display: block;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 24px 0;
+  }
+
+  .post-preview-last {
+    border-bottom: none !important;
+  }
+
+  .posts-list .posts-list-caption {
+    grid-column: screen;
+    font-weight: 400;
+  }
+
+  .posts-list .post-preview h2 {
+    margin: 0 0 6px 0;
+    line-height: 1.2em;
+    font-style: normal;
+    font-size: 24px;
+  }
+
+  .posts-list .post-preview p {
+    margin: 0 0 12px 0;
+    line-height: 1.4em;
+    font-size: 16px;
+  }
+
+  .posts-list .post-preview .thumbnail {
+    box-sizing: border-box;
+    margin-bottom: 24px;
+    position: relative;
+    max-width: 500px;
+  }
+  .posts-list .post-preview img {
+    width: 100%;
+    display: block;
+  }
+
+  .posts-list .metadata {
+    font-size: 12px;
+    line-height: 1.4em;
+    margin-bottom: 18px;
+  }
+
+  .posts-list .metadata > * {
+    display: inline-block;
+  }
+
+  .posts-list .metadata .publishedDate {
+    margin-right: 2em;
+  }
+
+  .posts-list .metadata .dt-authors {
+    display: block;
+    margin-top: 0.3em;
+    margin-right: 2em;
+  }
+
+  .posts-list .dt-tags {
+    display: block;
+    line-height: 1em;
+  }
+
+  .posts-list .dt-tags .dt-tag {
+    display: inline-block;
+    color: rgba(0,0,0,0.6);
+    padding: 0.3em 0.4em;
+    margin-right: 0.2em;
+    margin-bottom: 0.4em;
+    font-size: 60%;
+    border: 1px solid rgba(0,0,0,0.2);
+    border-radius: 3px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .posts-list img {
+    opacity: 1;
+  }
+
+  .posts-list img[data-src] {
+    opacity: 0;
+  }
+
+  .posts-more {
+    clear: both;
+  }
+
+
+  .posts-sidebar {
+    font-size: 16px;
+  }
+
+  .posts-sidebar h3 {
+    font-size: 16px;
+    margin-top: 0;
+    margin-bottom: 0.5em;
+    font-weight: 400;
+    text-transform: uppercase;
+  }
+
+  .sidebar-section {
+    margin-bottom: 30px;
+  }
+
+  .categories ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .categories li {
+    color: rgba(0, 0, 0, 0.8);
+    margin-bottom: 0;
+  }
+
+  .categories li>a {
+    border-bottom: none;
+  }
+
+  .categories li>a:hover {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.4);
+  }
+
+  .categories .active {
+    font-weight: 600;
+  }
+
+  .categories .category-count {
+    color: rgba(0, 0, 0, 0.4);
+  }
+
+
+  @media(min-width: 768px) {
+    .posts-list .post-preview h2 {
+      font-size: 26px;
+    }
+    .posts-list .post-preview .thumbnail {
+      float: right;
+      width: 30%;
+      margin-bottom: 0;
+    }
+    .posts-list .post-preview .description {
+      float: left;
+      width: 45%;
+    }
+    .posts-list .post-preview .metadata {
+      float: left;
+      width: 20%;
+      margin-top: 8px;
+    }
+    .posts-list .post-preview p {
+      margin: 0 0 12px 0;
+      line-height: 1.5em;
+      font-size: 16px;
+    }
+    .posts-with-sidebar .posts-list {
+      float: left;
+      width: 75%;
+    }
+    .posts-with-sidebar .posts-sidebar {
+      float: right;
+      width: 20%;
+      margin-top: 60px;
+      padding-top: 24px;
+      padding-bottom: 24px;
+    }
+  }
+
+
+  /* Improve display for browsers without grid (IE/Edge <= 15) */
+
+  .downlevel {
+    line-height: 1.6em;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+  }
+
+  .downlevel .d-title {
+    padding-top: 6rem;
+    padding-bottom: 1.5rem;
+  }
+
+  .downlevel .d-title h1 {
+    font-size: 50px;
+    font-weight: 700;
+    line-height: 1.1em;
+    margin: 0 0 0.5rem;
+  }
+
+  .downlevel .d-title p {
+    font-weight: 300;
+    font-size: 1.2rem;
+    line-height: 1.55em;
+    margin-top: 0;
+  }
+
+  .downlevel .d-byline {
+    padding-top: 0.8em;
+    padding-bottom: 0.8em;
+    font-size: 0.8rem;
+    line-height: 1.8em;
+  }
+
+  .downlevel .section-separator {
+    border: none;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  .downlevel .d-article {
+    font-size: 1.06rem;
+    line-height: 1.7em;
+    padding-top: 1rem;
+    padding-bottom: 2rem;
+  }
+
+
+  .downlevel .d-appendix {
+    padding-left: 0;
+    padding-right: 0;
+    max-width: none;
+    font-size: 0.8em;
+    line-height: 1.7em;
+    margin-bottom: 0;
+    color: rgba(0,0,0,0.5);
+    padding-top: 40px;
+    padding-bottom: 48px;
+  }
+
+  .downlevel .footnotes ol {
+    padding-left: 13px;
+  }
+
+  .downlevel .base-grid,
+  .downlevel .distill-header,
+  .downlevel .d-title,
+  .downlevel .d-abstract,
+  .downlevel .d-article,
+  .downlevel .d-appendix,
+  .downlevel .distill-appendix,
+  .downlevel .d-byline,
+  .downlevel .d-footnote-list,
+  .downlevel .d-citation-list,
+  .downlevel .distill-footer,
+  .downlevel .appendix-bottom,
+  .downlevel .posts-container {
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+
+  @media(min-width: 768px) {
+    .downlevel .base-grid,
+    .downlevel .distill-header,
+    .downlevel .d-title,
+    .downlevel .d-abstract,
+    .downlevel .d-article,
+    .downlevel .d-appendix,
+    .downlevel .distill-appendix,
+    .downlevel .d-byline,
+    .downlevel .d-footnote-list,
+    .downlevel .d-citation-list,
+    .downlevel .distill-footer,
+    .downlevel .appendix-bottom,
+    .downlevel .posts-container {
+    padding-left: 150px;
+    padding-right: 150px;
+    max-width: 900px;
+  }
+  }
+
+  .downlevel pre code {
+    display: block;
+    border-left: 2px solid rgba(0, 0, 0, .1);
+    padding: 0 0 0 20px;
+    font-size: 14px;
+  }
+
+  .downlevel code, .downlevel pre {
+    color: black;
+    background: none;
+    font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+    text-align: left;
+    white-space: pre;
+    word-spacing: normal;
+    word-break: normal;
+    word-wrap: normal;
+    line-height: 1.5;
+
+    -moz-tab-size: 4;
+    -o-tab-size: 4;
+    tab-size: 4;
+
+    -webkit-hyphens: none;
+    -moz-hyphens: none;
+    -ms-hyphens: none;
+    hyphens: none;
+  }
+
+  .downlevel .posts-list .post-preview {
+    color: inherit;
+  }
+
+
+
+  </style>
+
+  <script type="application/javascript">
+
+  function is_downlevel_browser() {
+    if (bowser.isUnsupportedBrowser({ msie: "12", msedge: "16"},
+                                   window.navigator.userAgent)) {
+      return true;
+    } else {
+      return window.load_distill_framework === undefined;
+    }
+  }
+
+  // show body when load is complete
+  function on_load_complete() {
+
+    // add anchors
+    if (window.anchors) {
+      window.anchors.options.placement = 'left';
+      window.anchors.add('d-article > h2, d-article > h3, d-article > h4, d-article > h5');
+    }
+
+
+    // set body to visible
+    document.body.style.visibility = 'visible';
+
+    // force redraw for leaflet widgets
+    if (window.HTMLWidgets) {
+      var maps = window.HTMLWidgets.findAll(".leaflet");
+      $.each(maps, function(i, el) {
+        var map = this.getMap();
+        map.invalidateSize();
+        map.eachLayer(function(layer) {
+          if (layer instanceof L.TileLayer)
+            layer.redraw();
+        });
+      });
+    }
+
+    // trigger 'shown' so htmlwidgets resize
+    $('d-article').trigger('shown');
+  }
+
+  function init_distill() {
+
+    init_common();
+
+    // create front matter
+    var front_matter = $('<d-front-matter></d-front-matter>');
+    $('#distill-front-matter').wrap(front_matter);
+
+    // create d-title
+    $('.d-title').changeElementType('d-title');
+
+    // create d-byline
+    var byline = $('<d-byline></d-byline>');
+    $('.d-byline').replaceWith(byline);
+
+    // create d-article
+    var article = $('<d-article></d-article>');
+    $('.d-article').wrap(article).children().unwrap();
+
+    // move posts container into article
+    $('.posts-container').appendTo($('d-article'));
+
+    // create d-appendix
+    $('.d-appendix').changeElementType('d-appendix');
+
+    // flag indicating that we have appendix items
+    var appendix = $('.appendix-bottom').children('h3').length > 0;
+
+    // replace footnotes with <d-footnote>
+    $('.footnote-ref').each(function(i, val) {
+      appendix = true;
+      var href = $(this).attr('href');
+      var id = href.replace('#', '');
+      var fn = $('#' + id);
+      var fn_p = $('#' + id + '>p');
+      fn_p.find('.footnote-back').remove();
+      var text = fn_p.html();
+      var dtfn = $('<d-footnote></d-footnote>');
+      dtfn.html(text);
+      $(this).replaceWith(dtfn);
+    });
+    // remove footnotes
+    $('.footnotes').remove();
+
+    // move refs into #references-listing
+    $('#references-listing').replaceWith($('#refs'));
+
+    $('h1.appendix, h2.appendix').each(function(i, val) {
+      $(this).changeElementType('h3');
+    });
+    $('h3.appendix').each(function(i, val) {
+      var id = $(this).attr('id');
+      $('.d-contents a[href="#' + id + '"]').parent().remove();
+      appendix = true;
+      $(this).nextUntil($('h1, h2, h3')).addBack().appendTo($('d-appendix'));
+    });
+
+    // show d-appendix if we have appendix content
+    $("d-appendix").css('display', appendix ? 'grid' : 'none');
+
+    // localize layout chunks to just output
+    $('.layout-chunk').each(function(i, val) {
+
+      // capture layout
+      var layout = $(this).attr('data-layout');
+
+      // apply layout to markdown level block elements
+      var elements = $(this).children().not('details, div.sourceCode, pre, script');
+      elements.each(function(i, el) {
+        var layout_div = $('<div class="' + layout + '"></div>');
+        if (layout_div.hasClass('shaded')) {
+          var shaded_content = $('<div class="shaded-content"></div>');
+          $(this).wrap(shaded_content);
+          $(this).parent().wrap(layout_div);
+        } else {
+          $(this).wrap(layout_div);
+        }
+      });
+
+
+      // unwrap the layout-chunk div
+      $(this).children().unwrap();
+    });
+
+    // remove code block used to force  highlighting css
+    $('.distill-force-highlighting-css').parent().remove();
+
+    // remove empty line numbers inserted by pandoc when using a
+    // custom syntax highlighting theme
+    $('code.sourceCode a:empty').remove();
+
+    // load distill framework
+    load_distill_framework();
+
+    // wait for window.distillRunlevel == 4 to do post processing
+    function distill_post_process() {
+
+      if (!window.distillRunlevel || window.distillRunlevel < 4)
+        return;
+
+      // hide author/affiliations entirely if we have no authors
+      var front_matter = JSON.parse($("#distill-front-matter").html());
+      var have_authors = front_matter.authors && front_matter.authors.length > 0;
+      if (!have_authors)
+        $('d-byline').addClass('hidden');
+
+      // article with toc class
+      $('.d-contents').parent().addClass('d-article-with-toc');
+
+      // strip links that point to #
+      $('.authors-affiliations').find('a[href="#"]').removeAttr('href');
+
+      // add orcid ids
+      $('.authors-affiliations').find('.author').each(function(i, el) {
+        var orcid_id = front_matter.authors[i].orcidID;
+        if (orcid_id) {
+          var a = $('<a></a>');
+          a.attr('href', 'https://orcid.org/' + orcid_id);
+          var img = $('<img></img>');
+          img.addClass('orcid-id');
+          img.attr('alt', 'ORCID ID');
+          img.attr('src','data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo1N0NEMjA4MDI1MjA2ODExOTk0QzkzNTEzRjZEQTg1NyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDozM0NDOEJGNEZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDozM0NDOEJGM0ZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M1IE1hY2ludG9zaCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkZDN0YxMTc0MDcyMDY4MTE5NUZFRDc5MUM2MUUwNEREIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjU3Q0QyMDgwMjUyMDY4MTE5OTRDOTM1MTNGNkRBODU3Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+84NovQAAAR1JREFUeNpiZEADy85ZJgCpeCB2QJM6AMQLo4yOL0AWZETSqACk1gOxAQN+cAGIA4EGPQBxmJA0nwdpjjQ8xqArmczw5tMHXAaALDgP1QMxAGqzAAPxQACqh4ER6uf5MBlkm0X4EGayMfMw/Pr7Bd2gRBZogMFBrv01hisv5jLsv9nLAPIOMnjy8RDDyYctyAbFM2EJbRQw+aAWw/LzVgx7b+cwCHKqMhjJFCBLOzAR6+lXX84xnHjYyqAo5IUizkRCwIENQQckGSDGY4TVgAPEaraQr2a4/24bSuoExcJCfAEJihXkWDj3ZAKy9EJGaEo8T0QSxkjSwORsCAuDQCD+QILmD1A9kECEZgxDaEZhICIzGcIyEyOl2RkgwAAhkmC+eAm0TAAAAABJRU5ErkJggg==');
+          a.append(img);
+          $(this).append(a);
+        }
+      });
+
+      // hide elements of author/affiliations grid that have no value
+      function hide_byline_column(caption) {
+        $('d-byline').find('h3:contains("' + caption + '")').parent().css('visibility', 'hidden');
+      }
+
+      // affiliations
+      var have_affiliations = false;
+      for (var i = 0; i<front_matter.authors.length; ++i) {
+        var author = front_matter.authors[i];
+        if (author.affiliation !== "&nbsp;") {
+          have_affiliations = true;
+          break;
+        }
+      }
+      if (!have_affiliations)
+        $('d-byline').find('h3:contains("Affiliations")').css('visibility', 'hidden');
+
+      // published date
+      if (!front_matter.publishedDate)
+        hide_byline_column("Published");
+
+      // document object identifier
+      var doi = $('d-byline').find('h3:contains("DOI")');
+      var doi_p = doi.next().empty();
+      if (!front_matter.doi) {
+        // if we have a citation and valid citationText then link to that
+        if ($('#citation').length > 0 && front_matter.citationText) {
+          doi.html('Citation');
+          $('<a href="#citation"></a>')
+            .text(front_matter.citationText)
+            .appendTo(doi_p);
+        } else {
+          hide_byline_column("DOI");
+        }
+      } else {
+        $('<a></a>')
+           .attr('href', "https://doi.org/" + front_matter.doi)
+           .html(front_matter.doi)
+           .appendTo(doi_p);
+      }
+
+       // change plural form of authors/affiliations
+      if (front_matter.authors.length === 1) {
+        var grid = $('.authors-affiliations');
+        grid.children('h3:contains("Authors")').text('Author');
+        grid.children('h3:contains("Affiliations")').text('Affiliation');
+      }
+
+      // remove d-appendix and d-footnote-list local styles
+      $('d-appendix > style:first-child').remove();
+      $('d-footnote-list > style:first-child').remove();
+
+      // move appendix-bottom entries to the bottom
+      $('.appendix-bottom').appendTo('d-appendix').children().unwrap();
+      $('.appendix-bottom').remove();
+
+      // hoverable references
+      $('span.citation[data-cites]').each(function() {
+        if ($(this).children()[0].nodeName == "D-FOOTNOTE") {
+          var fn = $(this).children()[0]
+          $(this).html(fn.shadowRoot.querySelector("sup"))
+          $(this).id = fn.id
+          fn.remove()
+        }
+        var refs = $(this).attr('data-cites').split(" ");
+        var refHtml = refs.map(function(ref) {
+          return "<p>" + $('#ref-' + ref).html() + "</p>";
+        }).join("\n");
+        window.tippy(this, {
+          allowHTML: true,
+          content: refHtml,
+          maxWidth: 500,
+          interactive: true,
+          interactiveBorder: 10,
+          theme: 'light-border',
+          placement: 'bottom-start'
+        });
+      });
+
+      // fix footnotes in tables (#411)
+      // replacing broken distill.pub feature
+      $('table d-footnote').each(function() {
+        // we replace internal showAtNode methode which is triggered when hovering a footnote
+        this.hoverBox.showAtNode = function(node) {
+          // ported from https://github.com/distillpub/template/pull/105/files
+          calcOffset = function(elem) {
+              let x = elem.offsetLeft;
+              let y = elem.offsetTop;
+              // Traverse upwards until an `absolute` element is found or `elem`
+              // becomes null.
+              while (elem = elem.offsetParent && elem.style.position != 'absolute') {
+                  x += elem.offsetLeft;
+                  y += elem.offsetTop;
+              }
+
+              return { left: x, top: y };
+          }
+          // https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/offsetTop
+          const bbox = node.getBoundingClientRect();
+          const offset = calcOffset(node);
+          this.show([offset.left + bbox.width, offset.top + bbox.height]);
+        }
+      })
+
+      // clear polling timer
+      clearInterval(tid);
+
+      // show body now that everything is ready
+      on_load_complete();
+    }
+
+    var tid = setInterval(distill_post_process, 50);
+    distill_post_process();
+
+  }
+
+  function init_downlevel() {
+
+    init_common();
+
+     // insert hr after d-title
+    $('.d-title').after($('<hr class="section-separator"/>'));
+
+    // check if we have authors
+    var front_matter = JSON.parse($("#distill-front-matter").html());
+    var have_authors = front_matter.authors && front_matter.authors.length > 0;
+
+    // manage byline/border
+    if (!have_authors)
+      $('.d-byline').remove();
+    $('.d-byline').after($('<hr class="section-separator"/>'));
+    $('.d-byline a').remove();
+
+    // remove toc
+    $('.d-contents').remove();
+
+    // move appendix elements
+    $('h1.appendix, h2.appendix').each(function(i, val) {
+      $(this).changeElementType('h3');
+    });
+    $('h3.appendix').each(function(i, val) {
+      $(this).nextUntil($('h1, h2, h3')).addBack().appendTo($('.d-appendix'));
+    });
+
+
+    // inject headers into references and footnotes
+    var refs_header = $('<h3></h3>');
+    refs_header.text('References');
+    $('#refs').prepend(refs_header);
+
+    var footnotes_header = $('<h3></h3');
+    footnotes_header.text('Footnotes');
+    $('.footnotes').children('hr').first().replaceWith(footnotes_header);
+
+    // move appendix-bottom entries to the bottom
+    $('.appendix-bottom').appendTo('.d-appendix').children().unwrap();
+    $('.appendix-bottom').remove();
+
+    // remove appendix if it's empty
+    if ($('.d-appendix').children().length === 0)
+      $('.d-appendix').remove();
+
+    // prepend separator above appendix
+    $('.d-appendix').before($('<hr class="section-separator" style="clear: both"/>'));
+
+    // trim code
+    $('pre>code').each(function(i, val) {
+      $(this).html($.trim($(this).html()));
+    });
+
+    // move posts-container right before article
+    $('.posts-container').insertBefore($('.d-article'));
+
+    $('body').addClass('downlevel');
+
+    on_load_complete();
+  }
+
+
+  function init_common() {
+
+    // jquery plugin to change element types
+    (function($) {
+      $.fn.changeElementType = function(newType) {
+        var attrs = {};
+
+        $.each(this[0].attributes, function(idx, attr) {
+          attrs[attr.nodeName] = attr.nodeValue;
+        });
+
+        this.replaceWith(function() {
+          return $("<" + newType + "/>", attrs).append($(this).contents());
+        });
+      };
+    })(jQuery);
+
+    // prevent underline for linked images
+    $('a > img').parent().css({'border-bottom' : 'none'});
+
+    // mark non-body figures created by knitr chunks as 100% width
+    $('.layout-chunk').each(function(i, val) {
+      var figures = $(this).find('img, .html-widget');
+      // ignore leaflet img layers (#106)
+      figures = figures.filter(':not(img[class*="leaflet"])')
+      if ($(this).attr('data-layout') !== "l-body") {
+        figures.css('width', '100%');
+      } else {
+        figures.css('max-width', '100%');
+        figures.filter("[width]").each(function(i, val) {
+          var fig = $(this);
+          fig.css('width', fig.attr('width') + 'px');
+        });
+
+      }
+    });
+
+    // auto-append index.html to post-preview links in file: protocol
+    // and in rstudio ide preview
+    $('.post-preview').each(function(i, val) {
+      if (window.location.protocol === "file:")
+        $(this).attr('href', $(this).attr('href') + "index.html");
+    });
+
+    // get rid of index.html references in header
+    if (window.location.protocol !== "file:") {
+      $('.distill-site-header a[href]').each(function(i,val) {
+        $(this).attr('href', $(this).attr('href').replace(/^index[.]html/, "./"));
+      });
+    }
+
+    // add class to pandoc style tables
+    $('tr.header').parent('thead').parent('table').addClass('pandoc-table');
+    $('.kable-table').children('table').addClass('pandoc-table');
+
+    // add figcaption style to table captions
+    $('caption').parent('table').addClass("figcaption");
+
+    // initialize posts list
+    if (window.init_posts_list)
+      window.init_posts_list();
+
+    // implmement disqus comment link
+    $('.disqus-comment-count').click(function() {
+      window.headroom_prevent_pin = true;
+      $('#disqus_thread').toggleClass('hidden');
+      if (!$('#disqus_thread').hasClass('hidden')) {
+        var offset = $(this).offset();
+        $(window).resize();
+        $('html, body').animate({
+          scrollTop: offset.top - 35
+        });
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    if (is_downlevel_browser())
+      init_downlevel();
+    else
+      window.addEventListener('WebComponentsReady', init_distill);
+  });
+
+  </script>
+
+  <!--/radix_placeholder_distill-->
+  <script src="consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/header-attrs-2.14/header-attrs.js"></script>
+  <script src="consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/htmlwidgets-1.5.4/htmlwidgets.js"></script>
+  <script src="consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+  <link href="consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/leaflet-1.3.1/leaflet.css" rel="stylesheet" />
+  <script src="consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/leaflet-1.3.1/leaflet.js"></script>
+  <link href="consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/leafletfix-1.0.0/leafletfix.css" rel="stylesheet" />
+  <script src="consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/proj4-2.6.2/proj4.min.js"></script>
+  <script src="consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/Proj4Leaflet-1.0.1/proj4leaflet.js"></script>
+  <link href="consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/rstudio_leaflet-1.3.1/rstudio_leaflet.css" rel="stylesheet" />
+  <script src="consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/leaflet-binding-2.1.1/leaflet.js"></script>
+  <script src="consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/lfx-wms-1.0.0/leaflet.wms.js"></script>
+  <script src="consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/lfx-wms-1.0.0/leaflet.wms-bindings.js"></script>
+  <link href="consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet" />
+  <script src="consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/datatables-binding-0.22/datatables.js"></script>
+  <link href="consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/dt-core-1.11.3/css/jquery.dataTables.min.css" rel="stylesheet" />
+  <link href="consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/dt-core-1.11.3/css/jquery.dataTables.extra.css" rel="stylesheet" />
+  <script src="consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/dt-core-1.11.3/js/jquery.dataTables.min.js"></script>
+  <link href="consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/crosstalk-1.2.0/css/crosstalk.min.css" rel="stylesheet" />
+  <script src="consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/crosstalk-1.2.0/js/crosstalk.min.js"></script>
+  <script src="consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/kePrint-0.0.1/kePrint.js"></script>
+  <link href="consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/lightable-0.0.1/lightable.css" rel="stylesheet" />
+  <script src="consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/popper-2.6.0/popper.min.js"></script>
+  <link href="consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/tippy-6.2.7/tippy.css" rel="stylesheet" />
+  <link href="consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/tippy-6.2.7/tippy-light-border.css" rel="stylesheet" />
+  <script src="consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/tippy-6.2.7/tippy.umd.min.js"></script>
+  <script src="consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/anchor-4.2.2/anchor.min.js"></script>
+  <script src="consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/bowser-1.9.3/bowser.min.js"></script>
+  <script src="consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/webcomponents-2.0.0/webcomponents.js"></script>
+  <script src="consumo-de-geoservicios-con-r-y-su-uso-para-la-gestin-local_files/distill-2.2.21/template.v2.js"></script>
+  <!--radix_placeholder_site_in_header-->
+  <!--/radix_placeholder_site_in_header-->
+
+
+</head>
+
+<body>
+
+<!--radix_placeholder_front_matter-->
+
+<script id="distill-front-matter" type="text/json">
+{"title":"Consumo de geoservicios con R y su uso para la gestión local","description":"En este post voy a mostrar el uso de algunas librerias de R para el consumo de geoservicios. Además, veremos como visualizar las capas de geoservicios con leaflet y haremos algunas operaciones para apoyar la gestión local. Espero que este mundo los atrape tanto como a mí.","authors":[{"author":"Hernan Hernandez","authorURL":"https://example.com/norajones","affiliation":"&nbsp;","affiliationURL":"#","orcidID":""}],"publishedDate":"2022-08-26T00:00:00.000-03:00","citationText":"Hernandez, 2022"}
+</script>
+
+<!--/radix_placeholder_front_matter-->
+<!--radix_placeholder_navigation_before_body-->
+<!--/radix_placeholder_navigation_before_body-->
+<!--radix_placeholder_site_before_body-->
+<!--/radix_placeholder_site_before_body-->
+
+<div class="d-title">
+<h1>Consumo de geoservicios con R y su uso para la gestión local</h1>
+<!--radix_placeholder_categories-->
+<!--/radix_placeholder_categories-->
+<p><p>En este post voy a mostrar el uso de algunas librerias de R para
+el consumo de geoservicios. Además, veremos como visualizar las capas de
+geoservicios con leaflet y haremos algunas operaciones para apoyar la
+gestión local. Espero que este mundo los atrape tanto como a mí.</p></p>
+</div>
+
+<div class="d-byline">
+  Hernan Hernandez <a href="https://example.com/norajones"
+class="uri">https://example.com/norajones</a> 
+  
+<br/>2022-08-26
+</div>
+
+<div class="d-article">
+<div class="d-contents d-contents-float">
+<nav class="l-text toc figcaption" id="TOC">
+<h3>Contents</h3>
+<ul>
+<li><a href="#contexto" id="toc-contexto">Contexto</a>
+<ul>
+<li><a href="#que-es-un-ide" id="toc-que-es-un-ide">¿Que es un IDE?
+🤔</a></li>
+</ul></li>
+<li><a href="#a-los-datos" id="toc-a-los-datos">A los datos</a>
+<ul>
+<li><a href="#mapeamos-las-capas" id="toc-mapeamos-las-capas">Mapeamos
+las capas</a></li>
+<li><a href="#tiempo-de-ejercicio" id="toc-tiempo-de-ejercicio">Tiempo
+de ejercicio 🏋️</a>
+<ul>
+<li><a href="#metodolgia" id="toc-metodolgia">Metodolgia 🧾</a></li>
+<li><a href="#extraemos-la-informacion-de-las-capas"
+id="toc-extraemos-la-informacion-de-las-capas">Extraemos la informacion
+de las capas</a></li>
+<li><a href="#homogeneizamos-las-proyecciones"
+id="toc-homogeneizamos-las-proyecciones">Homogeneizamos las
+proyecciones</a></li>
+<li><a href="#comentarios-finales"
+id="toc-comentarios-finales">Comentarios finales 🔈</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+</div>
+<div class="layout-chunk" data-layout="l-body">
+<details>
+<summary>
+Show code
+</summary>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='https://r-spatial.github.io/sf/'>sf</a></span><span class='op'>)</span>
+<span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='https://rstudio.github.io/leaflet/'>leaflet</a></span><span class='op'>)</span>
+<span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='https://dplyr.tidyverse.org'>dplyr</a></span><span class='op'>)</span>
+<span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='https://tidyr.tidyverse.org'>tidyr</a></span><span class='op'>)</span>
+<span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='http://purrr.tidyverse.org'>purrr</a></span><span class='op'>)</span>
+<span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='https://ggplot2.tidyverse.org'>ggplot2</a></span><span class='op'>)</span>
+<span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='https://trafficonese.github.io/leaflet.extras2/'>leaflet.extras2</a></span><span class='op'>)</span>
+<span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='https://github.com/riatelab/osrm'>osrm</a></span><span class='op'>)</span>
+</code></pre>
+</div>
+</details>
+</div>
+<h1 id="contexto">Contexto</h1>
+<p>En muchas áreas de la vida social, económica, cultural, etc, la
+comprensión del espacio o “lo espacial” se vuelve fundamental para la
+comprensión de ciertas dinámicas o tendencias. En el área de salud esto
+se hace más evidente ya que en gran parte la salud de un individuo o de
+una comunidad está determinada por como esta configurado este espacio
+que lo rodea.</p>
+<p>Por eso aquí vamos a trabajar un ejemplo del uso de los
+<strong>geoservicios</strong> para la gestión local en salud, pero ¿que
+son los geoservicios?.</p>
+<p>Vamos a decir que son un Servicio Web específico que permite
+intercambiar información únicamente de componente geográfica. Para la
+generación y utilización de los estos se utilizan lenguajes específicos
+y protocolos estándares definidos.</p>
+<h3 id="que-es-un-ide">¿Que es un IDE? 🤔</h3>
+<p>Es la sigla para representar el término Infraestructura de Datos
+Espaciales, que cumple la función de permitir:</p>
+<blockquote>
+<p>…acceder a datos, productos y servicios geoespaciales, publicados en
+internet bajo estándares y normas definidos, asegurando su
+interoperabilidad y uso, como así también la propiedad sobre la
+información por parte de los organismos que la publican y su
+responsabilidad en la actualización (IDERA)</p>
+</blockquote>
+<p>En Argentina, este rol lo cumple <a href="https://www.idera.gob.ar/"
+title="IDERA"><strong>IDERA</strong></a>, una comunidad geoespacial que
+involucra actores estatales, de la sociedad civil y privados.</p>
+<h1 id="a-los-datos">A los datos</h1>
+<p>Luego de la pequeña intro vamos a los datos. El ejemplo que
+utilizaremos para revisar el uso de las librerias corresponde a los
+geoservicios de la ciudad de Gualeguaychú, que además de ser mi ciudad
+de nacimiento, recientemente ha disponibilizado esta información para la
+comunidad en el siguiente <a
+href="https://mapa.gualeguaychu.gov.ar/?zoom=13&amp;lat=-33.008&amp;lng=-58.5111&amp;layers=argenmap"
+title="link">link</a>.</p>
+<p>Realizaremos la lectura del servicio con la libreria <em>sf,</em> la
+la usaremos la lo largo de este post ya que nos permite una amplia gama
+de operaciones. Es importante saber que existen dos tipos de servicios
+WMS y WFS <a href="#fn1" class="footnote-ref" id="fnref1"
+role="doc-noteref"><sup>1</sup></a>.</p>
+<div class="layout-chunk" data-layout="l-body">
+<details>
+<summary>
+Show code
+</summary>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='co'>#Guardamos la URL en un objeto</span>
+
+<span class='va'>geo_gchu</span> <span class='op'>&lt;-</span> <span class='st'>"https://geo.gualeguaychu.gov.ar/geoserver/gis/wms?Request=GetCapabilities"</span>
+
+<span class='co'>#Exploramos las capas</span>
+
+<span class='va'>layers</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://r-spatial.github.io/sf/reference/st_layers.html'>st_layers</a></span><span class='op'>(</span><span class='st'>"WFS:https://geo.gualeguaychu.gov.ar/geoserver/gis/wms?Request=GetCapabilities"</span><span class='op'>)</span>
+<span class='fu'><a href='https://rdrr.io/r/utils/head.html'>head</a></span><span class='op'>(</span><span class='va'>layers</span><span class='op'>$</span><span class='va'>name</span>,<span class='fl'>10</span><span class='op'>)</span>
+</code></pre>
+</div>
+</details>
+<pre><code>##  [1] &quot;gis:AG_Control&quot;                         
+##  [2] &quot;gis:AG_Nodos&quot;                           
+##  [3] &quot;gis:AG_Symbols&quot;                         
+##  [4] &quot;gis:AG_Tramos&quot;                          
+##  [5] &quot;gis:aerodromo&quot;                          
+##  [6] &quot;gis:aerodromo_poligono&quot;                 
+##  [7] &quot;gis:turismo_alojamientos&quot;               
+##  [8] &quot;gis:antenas&quot;                            
+##  [9] &quot;gis:antiguos_nombres_de_calles&quot;         
+## [10] &quot;gis:area_de_fabricacion_y_procesamiento&quot;</code></pre>
+</div>
+<p>La función <strong>st_layers</strong> de <strong>sf</strong> nos
+permite explorar todas las capas disponibles en el geoservicio. En
+nuestro caso tomaremos 3:</p>
+<ul>
+<li><p>Establecimientos de Salud (gis:est_salud)</p></li>
+<li><p>Areas programáticas (gis:areas_programaticas)</p></li>
+<li><p>Radios Censales (gis:radios_censales)</p></li>
+</ul>
+<h2 id="mapeamos-las-capas">Mapeamos las capas</h2>
+<p>Miremos ahora 👀 las capas en un mapa, y usaremos en esta oportunidad
+la librería <strong>leaflet</strong> que nos permite acceder a mapas
+interactivos muy poderosos. Además, utilizaremos la libreria
+<strong>leaflet.extras2</strong> que nos da la posibilidad de ver
+características extras a nuestras capas.</p>
+<p>Usaremos <a
+href="https://www.ign.gob.ar/AreaServicios/Argenmap/Introduccion"
+title="https://www.ign.gob.ar/AreaServicios/Argenmap/Introduccion"><strong>Argenmap</strong></a>como
+tesela <a href="#fn2" class="footnote-ref" id="fnref2"
+role="doc-noteref"><sup>2</sup></a> base y luego iremos agregando las
+respectivas capas. Además, generaremos un control de capas que nos va a
+permitir seleccionar cuál o cuáles queremos ver.</p>
+<div class="layout-chunk" data-layout="l-page">
+<details>
+<summary>
+Show code
+</summary>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='fu'><a href='https://rdrr.io/pkg/leaflet/man/leaflet.html'>leaflet</a></span><span class='op'>(</span><span class='op'>)</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'><a href='https://rdrr.io/pkg/leaflet/man/map-layers.html'>addTiles</a></span><span class='op'>(</span>urlTemplate <span class='op'>=</span> <span class='st'>"https://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0/mapabase_gris@EPSG%3A3857@png/{z}/{x}/{-y}.png"</span>,
+           <span class='fu'><a href='https://rdrr.io/pkg/leaflet/man/map-options.html'>tileOptions</a></span><span class='op'>(</span>tms <span class='op'>=</span> <span class='cn'>TRUE</span>,maxZoom <span class='op'>=</span> <span class='fl'>14</span><span class='op'>)</span>, attribution <span class='op'>=</span> <span class='st'>'&lt;a target="_blank" href="https://www.ign.gob.ar/argenmap/argenmap.jquery/docs/#datosvectoriales" style="color: black; text-decoration: underline; font-weight: normal;"&gt;Datos IGN Argentina // OpenStreetMap&lt;/a&gt;'</span>,
+           group <span class='op'>=</span> <span class='st'>"Argenmap"</span><span class='op'>)</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span> <span class='co'>#Aquí agregamos Argenmap</span>
+  <span class='fu'><a href='https://trafficonese.github.io/leaflet.extras2/reference/addWMS.html'>addWMS</a></span><span class='op'>(</span>
+    <span class='va'>geo_gchu</span>,
+    layers <span class='op'>=</span> <span class='st'>"radios_censales"</span>,
+    options <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/pkg/leaflet/man/map-options.html'>WMSTileOptions</a></span><span class='op'>(</span>format <span class='op'>=</span> <span class='st'>"image/png"</span>, transparent <span class='op'>=</span> <span class='cn'>TRUE</span>,info_format <span class='op'>=</span> <span class='st'>"text/html"</span>, tiled<span class='op'>=</span><span class='cn'>FALSE</span><span class='op'>)</span>,
+    group <span class='op'>=</span> <span class='st'>"Radios Censales"</span>
+  <span class='op'>)</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span> <span class='co'>#Agregamos layer de Radios Censales</span>
+  <span class='fu'><a href='https://trafficonese.github.io/leaflet.extras2/reference/addWMS.html'>addWMS</a></span><span class='op'>(</span>
+    <span class='va'>geo_gchu</span>,
+    layers <span class='op'>=</span> <span class='st'>"areas_programaticas"</span>,
+    options <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/pkg/leaflet/man/map-options.html'>WMSTileOptions</a></span><span class='op'>(</span>format <span class='op'>=</span> <span class='st'>"image/png"</span>, transparent <span class='op'>=</span> <span class='cn'>TRUE</span>,info_format <span class='op'>=</span> <span class='st'>"text/html"</span>, tiled<span class='op'>=</span><span class='cn'>FALSE</span><span class='op'>)</span>,
+    group <span class='op'>=</span> <span class='st'>"Areas Programáticas"</span>
+  <span class='op'>)</span>  <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span> <span class='co'>#Agregamos layer de Areas Programáticas</span>
+  <span class='fu'><a href='https://trafficonese.github.io/leaflet.extras2/reference/addWMS.html'>addWMS</a></span><span class='op'>(</span>
+    <span class='va'>geo_gchu</span>,
+    layers <span class='op'>=</span> <span class='st'>"est_salud"</span>,
+    options <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/pkg/leaflet/man/map-options.html'>WMSTileOptions</a></span><span class='op'>(</span>format <span class='op'>=</span> <span class='st'>"image/png"</span>, transparent <span class='op'>=</span> <span class='cn'>TRUE</span>,info_format <span class='op'>=</span> <span class='st'>"text/html"</span>, tiled<span class='op'>=</span><span class='cn'>FALSE</span><span class='op'>)</span>,
+    group <span class='op'>=</span> <span class='st'>"Est de salud"</span>
+  <span class='op'>)</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span> <span class='co'>#Agregamos layer de Establecimientos de Salud</span>
+   <span class='fu'><a href='https://rdrr.io/pkg/leaflet/man/addLayersControl.html'>addLayersControl</a></span><span class='op'>(</span>
+    baseGroups <span class='op'>=</span> <span class='st'>"Argenmap"</span>,
+    overlayGroups <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"Areas Programáticas"</span>,<span class='st'>"Est de salud"</span>,<span class='st'>"Radios Censales"</span><span class='op'>)</span>,
+    options <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/pkg/leaflet/man/addLayersControl.html'>layersControlOptions</a></span><span class='op'>(</span>collapsed <span class='op'>=</span> <span class='cn'>FALSE</span><span class='op'>)</span><span class='op'>)</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'><a href='https://rdrr.io/pkg/leaflet/man/map-methods.html'>setView</a></span><span class='op'>(</span>lng <span class='op'>=</span> <span class='op'>-</span><span class='fl'>58.52597</span>, lat <span class='op'>=</span> <span class='op'>-</span><span class='fl'>33.00606</span>,zoom <span class='op'>=</span> <span class='fl'>11</span><span class='op'>)</span>
+</code></pre>
+</div>
+</details>
+<div id="htmlwidget-1f819c518a4682030604" style="width:624px;height:384px;" class="leaflet html-widget"></div>
+<script type="application/json" data-for="htmlwidget-1f819c518a4682030604">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addTiles","args":["https://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0/mapabase_gris@EPSG%3A3857@png/{z}/{x}/{-y}.png",{"minZoom":0,"maxZoom":14,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":true,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":1,"detectRetina":false},"Argenmap",{"minZoom":0,"maxZoom":18,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":1,"detectRetina":false,"attribution":"<a target=\"_blank\" href=\"https://www.ign.gob.ar/argenmap/argenmap.jquery/docs/#datosvectoriales\" style=\"color: black; text-decoration: underline; font-weight: normal;\">Datos IGN Argentina // OpenStreetMap<\/a>"}]},{"method":"addWMS","args":["https://geo.gualeguaychu.gov.ar/geoserver/gis/wms?Request=GetCapabilities",null,"Radios Censales",{"styles":"","format":"image/png","transparent":true,"version":"1.1.1","info_format":"text/html","tiled":false,"layers":"radios_censales","checkempty":false},null]},{"method":"addWMS","args":["https://geo.gualeguaychu.gov.ar/geoserver/gis/wms?Request=GetCapabilities",null,"Areas Programáticas",{"styles":"","format":"image/png","transparent":true,"version":"1.1.1","info_format":"text/html","tiled":false,"layers":"areas_programaticas","checkempty":false},null]},{"method":"addWMS","args":["https://geo.gualeguaychu.gov.ar/geoserver/gis/wms?Request=GetCapabilities",null,"Est de salud",{"styles":"","format":"image/png","transparent":true,"version":"1.1.1","info_format":"text/html","tiled":false,"layers":"est_salud","checkempty":false},null]},{"method":"addLayersControl","args":["Argenmap",["Areas Programáticas","Est de salud","Radios Censales"],{"collapsed":false,"autoZIndex":true,"position":"topright"}]}],"setView":[[-33.00606,-58.52597],11,[]]},"evals":[],"jsHooks":[]}</script>
+</div>
+<p>Si cliquean sobre el área programática pueden obtener información del
+responsable del área, ubicación, teléfono. Si en cambio cliquean el
+radio censal les devuelve información de la cantidad de hogares,
+personas e incluso el área 🙌🏼.</p>
+<h2 id="tiempo-de-ejercicio">Tiempo de ejercicio 🏋️</h2>
+<p>El acceso al sistema de salud puede ser abordado desde distintas
+perspectivas, barreras culturales, geográficas, presencia de medios de
+transporte, etc.</p>
+<p>En este ejercicio intentaré abordar la accesibilidad que tiene cada
+área programática a un centro de salud, para poder determinar en
+términos de tiempo y distancia cuál tiene una mayor accesibilidad y cuál
+menor.</p>
+<p>Antes de avanzar, cuándo hablamos de <strong>área
+programática</strong> hacemos referencia al área de influencia de un
+determinado centro asistencial que se expresa, aunque no únicamente, en
+un <strong>polígono geográfico</strong>. La idea central es que las
+personas que viven en esa área se referencian con el centro de salud o
+los centros de salud contenidos en ésta <a href="#fn3"
+class="footnote-ref" id="fnref3"
+role="doc-noteref"><sup>3</sup></a>.</p>
+<h3 id="metodolgia">Metodolgia 🧾</h3>
+<p>La metodología que voy a usar para determinar la distancia por área
+programática al centro de salud, es asignar los radios censales a cada
+uno de los poligonos que representan el área programática.</p>
+<p>Luego, voy a calcular los centroides de cada radio censal y voy a
+medir la distancia en tiempo (a pie) y en kilómetros hasta el centro o
+los centros de salud que contiene el area.</p>
+<p>Resulta un poco confuso 🙄, veamos el código.</p>
+<h3 id="extraemos-la-informacion-de-las-capas">Extraemos la informacion
+de las capas</h3>
+<div class="layout-chunk" data-layout="l-body">
+<details>
+<summary>
+Show code
+</summary>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='co'>#Extraemos las areas programaticas</span>
+<span class='va'>areas_programaticas</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://r-spatial.github.io/sf/reference/st_read.html'>st_read</a></span><span class='op'>(</span><span class='st'>"WFS:https://geo.gualeguaychu.gov.ar/geoserver/gis/wms?Request=GetCapabilities"</span>,<span class='st'>"gis:areas_programaticas"</span><span class='op'>)</span>
+</code></pre>
+</div>
+</details>
+<pre><code>## Reading layer `gis:areas_programaticas&#39; from data source 
+##   `WFS:https://geo.gualeguaychu.gov.ar/geoserver/gis/wms?Request=GetCapabilities&#39; 
+##   using driver `WFS&#39;
+## Simple feature collection with 9 features and 5 fields
+## Geometry type: MULTISURFACE
+## Dimension:     XY
+## Bounding box:  xmin: 5628553 ymin: 6342554 xmax: 5641830 ymax: 6350683
+## Projected CRS: POSGAR 98 / Argentina 5</code></pre>
+<details>
+<summary>
+Show code
+</summary>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='co'>#Extraemos los establecimientos de salud</span>
+
+<span class='va'>est_salud</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://r-spatial.github.io/sf/reference/st_read.html'>st_read</a></span><span class='op'>(</span><span class='st'>"WFS:https://geo.gualeguaychu.gov.ar/geoserver/gis/wms?Request=GetCapabilities"</span>, <span class='st'>"gis:est_salud"</span><span class='op'>)</span>
+</code></pre>
+</div>
+</details>
+<pre><code>## Reading layer `gis:est_salud&#39; from data source 
+##   `WFS:https://geo.gualeguaychu.gov.ar/geoserver/gis/wms?Request=GetCapabilities&#39; 
+##   using driver `WFS&#39;
+## Simple feature collection with 11 features and 17 fields
+## Geometry type: MULTIPOINT
+## Dimension:     XY
+## Bounding box:  xmin: -58.54233 ymin: -33.03131 xmax: -58.50246 ymax: -32.99495
+## Geodetic CRS:  WGS 84</code></pre>
+<details>
+<summary>
+Show code
+</summary>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='co'>#Extraemos los radios censales</span>
+
+<span class='va'>radios_censales</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://r-spatial.github.io/sf/reference/st_read.html'>st_read</a></span><span class='op'>(</span><span class='st'>"WFS:https://geo.gualeguaychu.gov.ar/geoserver/gis/wms?Request=GetCapabilities"</span>,<span class='st'>"gis:radios_censales"</span><span class='op'>)</span>
+</code></pre>
+</div>
+</details>
+<pre><code>## Reading layer `gis:radios_censales&#39; from data source 
+##   `WFS:https://geo.gualeguaychu.gov.ar/geoserver/gis/wms?Request=GetCapabilities&#39; 
+##   using driver `WFS&#39;
+## Simple feature collection with 95 features and 10 fields
+## Geometry type: MULTISURFACE
+## Dimension:     XY
+## Bounding box:  xmin: 5625130 ymin: 6334522 xmax: 5675083 ymax: 6353581
+## Projected CRS: POSGAR 98 / Argentina 5</code></pre>
+<details>
+<summary>
+Show code
+</summary>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='va'>radios_censales</span> <span class='op'>&lt;-</span> <span class='va'>radios_censales</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span> 
+  <span class='fu'><a href='https://dplyr.tidyverse.org/reference/filter.html'>filter</a></span><span class='op'>(</span><span class='op'>!</span><span class='va'>gml_id</span> <span class='op'><a href='https://rdrr.io/r/base/match.html'>%in%</a></span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"radios_censales.2"</span>,<span class='st'>"radios_censales.11"</span><span class='op'>)</span><span class='op'>)</span>
+</code></pre>
+</div>
+</details>
+</div>
+<h3 id="homogeneizamos-las-proyecciones">Homogeneizamos las
+proyecciones</h3>
+<div class="layout-chunk" data-layout="l-body">
+<details>
+<summary>
+Show code
+</summary>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='co'>#homogeneizamos las proyecciones</span>
+
+<span class='co'># Centros de salud</span>
+<span class='va'>csalud</span> <span class='op'>&lt;-</span> <span class='va'>est_salud</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span> <span class='fu'><a href='https://r-spatial.github.io/sf/reference/st_geometry.html'>st_drop_geometry</a></span><span class='op'>(</span><span class='op'>)</span>
+
+<span class='va'>csalud</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://r-spatial.github.io/sf/reference/st_as_sf.html'>st_as_sf</a></span><span class='op'>(</span><span class='va'>csalud</span><span class='op'>[</span><span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"fid"</span>,<span class='st'>"nombre"</span>,<span class='st'>"longitud"</span>,<span class='st'>"latitud"</span><span class='op'>)</span><span class='op'>]</span>, coords <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"longitud"</span>, <span class='st'>"latitud"</span><span class='op'>)</span>, 
+         crs <span class='op'>=</span> <span class='fl'>4326</span>, remove<span class='op'>=</span> <span class='cn'>FALSE</span><span class='op'>)</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span> <span class='fu'><a href='https://r-spatial.github.io/sf/reference/st_transform.html'>st_transform</a></span><span class='op'>(</span>crs <span class='op'>=</span> <span class='fl'>4326</span><span class='op'>)</span>
+
+
+<span class='va'>est_salud</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://r-spatial.github.io/sf/reference/st_transform.html'>st_transform</a></span><span class='op'>(</span><span class='va'>est_salud</span>, <span class='fl'>4326</span><span class='op'>)</span>
+
+<span class='co'># Areas programaticas</span>
+
+<span class='va'>areas_programaticas</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://r-spatial.github.io/sf/reference/st_transform.html'>st_transform</a></span><span class='op'>(</span><span class='va'>areas_programaticas</span>, <span class='fl'>4326</span><span class='op'>)</span>
+
+<span class='va'>areas_programaticas</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://r-spatial.github.io/sf/reference/st_cast.html'>st_cast</a></span><span class='op'>(</span><span class='va'>areas_programaticas</span>, <span class='st'>"GEOMETRYCOLLECTION"</span><span class='op'>)</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span> <span class='fu'><a href='https://r-spatial.github.io/sf/reference/st_collection_extract.html'>st_collection_extract</a></span><span class='op'>(</span><span class='st'>"POLYGON"</span><span class='op'>)</span>
+
+<span class='co'># Radios censales</span>
+<span class='va'>radios_censales</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://r-spatial.github.io/sf/reference/st_transform.html'>st_transform</a></span><span class='op'>(</span><span class='va'>radios_censales</span>, <span class='fl'>4326</span><span class='op'>)</span>
+
+<span class='va'>radios_censales</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://r-spatial.github.io/sf/reference/st_cast.html'>st_cast</a></span><span class='op'>(</span><span class='va'>radios_censales</span>, <span class='st'>"GEOMETRYCOLLECTION"</span><span class='op'>)</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span> <span class='fu'><a href='https://r-spatial.github.io/sf/reference/st_collection_extract.html'>st_collection_extract</a></span><span class='op'>(</span><span class='st'>"POLYGON"</span><span class='op'>)</span>
+</code></pre>
+</div>
+</details>
+</div>
+<h4 id="calculamos-los-centroides-y-los-visualizamos">Calculamos los
+centroides y los visualizamos</h4>
+<p>Primero utilizamos la función <strong>st_centroid</strong> de
+<strong>sf</strong> y lo agregamos como layers a nuestro mapa.</p>
+<div class="layout-chunk" data-layout="l-body">
+<details>
+<summary>
+Show code
+</summary>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='va'>radios_censales</span><span class='op'>$</span><span class='va'>centroides</span> <span class='op'>&lt;-</span> <span class='va'>radios_censales</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>  <span class='fu'><a href='https://r-spatial.github.io/sf/reference/geos_unary.html'>st_centroid</a></span><span class='op'>(</span><span class='op'>)</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'><a href='https://r-spatial.github.io/sf/reference/st_geometry.html'>st_geometry</a></span><span class='op'>(</span><span class='op'>)</span> 
+
+<span class='va'>centroides</span> <span class='op'>&lt;-</span> <span class='va'>radios_censales</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'><a href='https://dplyr.tidyverse.org/reference/select.html'>select</a></span><span class='op'>(</span><span class='va'>gml_id</span><span class='op'>)</span><span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'><a href='https://r-spatial.github.io/sf/reference/geos_unary.html'>st_centroid</a></span><span class='op'>(</span><span class='op'>)</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'><a href='https://r-spatial.github.io/sf/reference/st_as_sf.html'>st_as_sf</a></span><span class='op'>(</span><span class='op'>)</span>
+</code></pre>
+</div>
+</details>
+</div>
+<div class="layout-chunk" data-layout="l-page">
+<details>
+<summary>
+Show code
+</summary>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='fu'><a href='https://rdrr.io/pkg/leaflet/man/leaflet.html'>leaflet</a></span><span class='op'>(</span><span class='op'>)</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'><a href='https://rdrr.io/pkg/leaflet/man/map-layers.html'>addTiles</a></span><span class='op'>(</span>urlTemplate <span class='op'>=</span> <span class='st'>"https://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0/mapabase_gris@EPSG%3A3857@png/{z}/{x}/{-y}.png"</span>,
+           <span class='fu'><a href='https://rdrr.io/pkg/leaflet/man/map-options.html'>tileOptions</a></span><span class='op'>(</span>tms <span class='op'>=</span> <span class='cn'>TRUE</span>,maxZoom <span class='op'>=</span> <span class='fl'>14</span><span class='op'>)</span>, attribution <span class='op'>=</span> <span class='st'>'&lt;a target="_blank" href="https://www.ign.gob.ar/argenmap/argenmap.jquery/docs/#datosvectoriales" style="color: black; text-decoration: underline; font-weight: normal;"&gt;Datos IGN Argentina // OpenStreetMap&lt;/a&gt;'</span>,
+           group <span class='op'>=</span> <span class='st'>"Argenmap"</span><span class='op'>)</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span> <span class='co'>#Aquí agregamos Argenmap</span>
+  <span class='fu'><a href='https://trafficonese.github.io/leaflet.extras2/reference/addWMS.html'>addWMS</a></span><span class='op'>(</span>
+    <span class='va'>geo_gchu</span>,
+    layers <span class='op'>=</span> <span class='st'>"radios_censales"</span>,
+    options <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/pkg/leaflet/man/map-options.html'>WMSTileOptions</a></span><span class='op'>(</span>format <span class='op'>=</span> <span class='st'>"image/png"</span>, transparent <span class='op'>=</span> <span class='cn'>TRUE</span>,info_format <span class='op'>=</span> <span class='st'>"text/html"</span>, tiled<span class='op'>=</span><span class='cn'>FALSE</span><span class='op'>)</span>,
+    group <span class='op'>=</span> <span class='st'>"Radios Censales"</span>
+  <span class='op'>)</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span> <span class='co'>#Agregamos layer de Radios Censales</span>
+  <span class='fu'><a href='https://trafficonese.github.io/leaflet.extras2/reference/addWMS.html'>addWMS</a></span><span class='op'>(</span>
+    <span class='va'>geo_gchu</span>,
+    layers <span class='op'>=</span> <span class='st'>"areas_programaticas"</span>,
+    options <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/pkg/leaflet/man/map-options.html'>WMSTileOptions</a></span><span class='op'>(</span>format <span class='op'>=</span> <span class='st'>"image/png"</span>, transparent <span class='op'>=</span> <span class='cn'>TRUE</span>,info_format <span class='op'>=</span> <span class='st'>"text/html"</span>, tiled<span class='op'>=</span><span class='cn'>FALSE</span><span class='op'>)</span>,
+    group <span class='op'>=</span> <span class='st'>"Areas Programáticas"</span>
+  <span class='op'>)</span>  <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span> <span class='co'>#Agregamos layer de Areas Programáticas</span>
+  <span class='fu'><a href='https://trafficonese.github.io/leaflet.extras2/reference/addWMS.html'>addWMS</a></span><span class='op'>(</span>
+    <span class='va'>geo_gchu</span>,
+    layers <span class='op'>=</span> <span class='st'>"est_salud"</span>,
+    options <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/pkg/leaflet/man/map-options.html'>WMSTileOptions</a></span><span class='op'>(</span>format <span class='op'>=</span> <span class='st'>"image/png"</span>, transparent <span class='op'>=</span> <span class='cn'>TRUE</span>,info_format <span class='op'>=</span> <span class='st'>"text/html"</span>, tiled<span class='op'>=</span><span class='cn'>FALSE</span><span class='op'>)</span>,
+    group <span class='op'>=</span> <span class='st'>"Est de salud"</span>
+  <span class='op'>)</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span> <span class='co'>#Agregamos layer de Establecimientos de Salud</span>
+  <span class='fu'><a href='https://rdrr.io/pkg/leaflet/man/map-layers.html'>addCircles</a></span><span class='op'>(</span>data<span class='op'>=</span> <span class='va'>centroides</span>,group <span class='op'>=</span> <span class='st'>"centroides"</span>,color <span class='op'>=</span> <span class='st'>"black"</span><span class='op'>)</span><span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span> <span class='co'>#Agregamos el circulo con los centroides</span>
+   <span class='fu'><a href='https://rdrr.io/pkg/leaflet/man/addLayersControl.html'>addLayersControl</a></span><span class='op'>(</span>
+    baseGroups <span class='op'>=</span> <span class='st'>"Argenmap"</span>,
+    overlayGroups <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"Areas Programáticas"</span>,<span class='st'>"Est de salud"</span>,<span class='st'>"Radios Censales"</span>,<span class='st'>"centroides"</span><span class='op'>)</span>,
+    options <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/pkg/leaflet/man/addLayersControl.html'>layersControlOptions</a></span><span class='op'>(</span>collapsed <span class='op'>=</span> <span class='cn'>FALSE</span><span class='op'>)</span><span class='op'>)</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'><a href='https://rdrr.io/pkg/leaflet/man/map-methods.html'>setView</a></span><span class='op'>(</span>lng <span class='op'>=</span> <span class='op'>-</span><span class='fl'>58.52597</span>, lat <span class='op'>=</span> <span class='op'>-</span><span class='fl'>33.00606</span>,zoom <span class='op'>=</span> <span class='fl'>11</span><span class='op'>)</span>
+</code></pre>
+</div>
+</details>
+<div id="htmlwidget-033fbc8699822b61983b" style="width:624px;height:384px;" class="leaflet html-widget"></div>
+<script type="application/json" data-for="htmlwidget-033fbc8699822b61983b">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addTiles","args":["https://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0/mapabase_gris@EPSG%3A3857@png/{z}/{x}/{-y}.png",{"minZoom":0,"maxZoom":14,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":true,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":1,"detectRetina":false},"Argenmap",{"minZoom":0,"maxZoom":18,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":1,"detectRetina":false,"attribution":"<a target=\"_blank\" href=\"https://www.ign.gob.ar/argenmap/argenmap.jquery/docs/#datosvectoriales\" style=\"color: black; text-decoration: underline; font-weight: normal;\">Datos IGN Argentina // OpenStreetMap<\/a>"}]},{"method":"addWMS","args":["https://geo.gualeguaychu.gov.ar/geoserver/gis/wms?Request=GetCapabilities",null,"Radios Censales",{"styles":"","format":"image/png","transparent":true,"version":"1.1.1","info_format":"text/html","tiled":false,"layers":"radios_censales","checkempty":false},null]},{"method":"addWMS","args":["https://geo.gualeguaychu.gov.ar/geoserver/gis/wms?Request=GetCapabilities",null,"Areas Programáticas",{"styles":"","format":"image/png","transparent":true,"version":"1.1.1","info_format":"text/html","tiled":false,"layers":"areas_programaticas","checkempty":false},null]},{"method":"addWMS","args":["https://geo.gualeguaychu.gov.ar/geoserver/gis/wms?Request=GetCapabilities",null,"Est de salud",{"styles":"","format":"image/png","transparent":true,"version":"1.1.1","info_format":"text/html","tiled":false,"layers":"est_salud","checkempty":false},null]},{"method":"addCircles","args":[[-33.0017015092324,-33.0042890198342,-32.9852509032379,-32.9936625926061,-33.0027663203045,-32.9972430534095,-32.9772854103562,-32.9840648163577,-32.9736078326006,-33.0044147577306,-33.0205679534007,-33.0247380786293,-33.0473023707281,-33.0381254135659,-33.0351939679866,-33.0289830962389,-33.0296382743809,-33.0296030262228,-33.0247250558923,-33.021950057809,-33.0184205643265,-33.0154837693845,-33.0135667290229,-33.0138425471536,-33.0163377887344,-33.0184336369728,-33.0212043233025,-33.0176393383671,-33.0144013507169,-33.0128712425602,-33.0144681099929,-33.0158245404373,-33.0160763962794,-33.0164202143666,-33.0117559912831,-33.0143718015844,-33.0103751902437,-33.0122146155301,-33.001822533324,-33.005123143384,-33.006291261509,-33.0081718187115,-33.0070123837481,-33.0113845067746,-33.0112038959807,-33.009935509974,-33.0113819399546,-33.0118886027555,-33.0097140280146,-33.0098839706726,-33.0080063437252,-33.0078936593644,-33.0052201198854,-33.0051699481624,-33.0011793706395,-33.0016735163072,-32.9964135611993,-32.9987991066908,-32.9953313522462,-32.9933304263437,-32.9924714041446,-33.001461735991,-33.0012373404084,-33.0011097413333,-33.0047035496692,-33.0047684374502,-33.0046522621529,-33.0042210110563,-33.0048656328414,-33.0045885307769,-33.0011341322809,-33.0069907136013,-33.0072516339408,-33.0096294939569,-33.0072599850017,-33.0069191972777,-33.0070359380911,-33.0093602352128,-33.0117467580873,-33.0152019754621,-33.0104290922314,-33.0133752111345,-33.0163529651266,-33.0212943290779,-33.0217159790857,-33.0263900803598,-33.0206073093362,-33.0168746556801,-33.0138775829551,-33.0139736402104,-33.0111009367012,-33.0093772143983,-33.0083971397456],[-58.5671480095415,-58.4942510638286,-58.5081660668642,-58.5124980436062,-58.5021616392258,-58.510966746031,-58.5279296495263,-58.5424482569953,-58.5748489552026,-58.5454995671719,-58.5526132402978,-58.6090533259095,-58.6015902397092,-58.5469863326847,-58.5408658713291,-58.5415149113147,-58.5304904797771,-58.5229428593604,-58.5216782311071,-58.524143191527,-58.5201362261028,-58.5203300906873,-58.5195763913385,-58.5225364975365,-58.5255235672084,-58.5279327249607,-58.5302335425962,-58.5315903494845,-58.5261723148191,-58.5261248437662,-58.5307467679612,-58.5346975256655,-58.5375056279637,-58.5416838761915,-58.540858922584,-58.5472044513995,-58.5460534477709,-58.5627913494789,-58.5330244165035,-58.5316200535698,-58.5357624426594,-58.5314407840312,-58.5397486995111,-58.5339179995901,-58.5296977050281,-58.5262431871927,-58.5261731537507,-58.520381072409,-58.5183729614531,-58.5217442227912,-58.5263264640179,-58.5228059559264,-58.5264170956045,-58.5229131624063,-58.5267603097497,-58.5232840062828,-58.5243564162332,-58.5328866212002,-58.5357003611635,-58.5411533951072,-58.519037177737,-58.5196039029114,-58.5150407738142,-58.5104908459165,-58.5177617070577,-58.5203466576274,-58.5145995377596,-58.5115735025193,-58.508951019568,-58.5055789399182,-58.5060801412071,-58.503020323062,-58.5065312216578,-58.5086964465,-58.5106935447407,-58.5153509779589,-58.5197014805458,-58.5051054762106,-58.5072421078649,-58.5064254418093,-58.5112329783804,-58.5110423990983,-58.5100727168922,-58.5099075900035,-58.5129577141783,-58.5181693361699,-58.5158551963361,-58.5146733979302,-58.5137211922714,-58.5163352474555,-58.5145045477197,-58.5150431293578,-58.5148421726256],10,null,"centroides",{"interactive":true,"className":"","stroke":true,"color":"black","weight":5,"opacity":0.5,"fill":true,"fillColor":"black","fillOpacity":0.2},null,null,null,{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null,null]},{"method":"addLayersControl","args":["Argenmap",["Areas Programáticas","Est de salud","Radios Censales","centroides"],{"collapsed":false,"autoZIndex":true,"position":"topright"}]}],"limits":{"lat":[-33.0473023707281,-32.9736078326006],"lng":[-58.6090533259095,-58.4942510638286]},"setView":[[-33.00606,-58.52597],11,[]]},"evals":[],"jsHooks":[]}</script>
+</div>
+<h4 id="hacemos-los-joins">Hacemos los joins 🤝</h4>
+<p>En esta etapa vamos a asignar los <strong>centros de salud</strong> y
+los radios censales a cada <strong>área programática,</strong> para
+luego poder hacer los cálculos. Utilizamos la función
+<strong>st_join</strong> de <strong>sf.</strong></p>
+<div class="layout-chunk" data-layout="l-body">
+<details>
+<summary>
+Show code
+</summary>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='va'>join</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://r-spatial.github.io/sf/reference/st_join.html'>st_join</a></span><span class='op'>(</span><span class='va'>areas_programaticas</span>,<span class='va'>csalud</span>,join<span class='op'>=</span> <span class='va'>st_intersects</span><span class='op'>)</span>
+</code></pre>
+</div>
+</details>
+</div>
+<p>Veamos que los centros de salud han sido asignado a areas
+programatica</p>
+<div class="layout-chunk" data-layout="l-body">
+<details>
+<summary>
+Show code
+</summary>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='fu'>DT</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/DT/man/datatable.html'>datatable</a></span><span class='op'>(</span><span class='va'>join</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span> <span class='fu'><a href='https://r-spatial.github.io/sf/reference/st_geometry.html'>st_drop_geometry</a></span><span class='op'>(</span><span class='op'>)</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span> <span class='fu'><a href='https://rdrr.io/r/utils/head.html'>head</a></span><span class='op'>(</span><span class='fl'>5</span><span class='op'>)</span><span class='op'>)</span>
+</code></pre>
+</div>
+</details>
+<div id="htmlwidget-a847dd759aaf007077cd" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-a847dd759aaf007077cd">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","3.1","4"],["areas_programaticas.1","areas_programaticas.2","areas_programaticas.3","areas_programaticas.3","areas_programaticas.4"],[2,1,5,5,6],["Martinez Paiva 2260","Perigan 2300","Jauretche 803","Jauretche 803","Jujuy y Montiel"],["03446-437002 INT 662","03446-437060 INT 676","03446-437102","03446-437102","03446-437006 INT 606"],["Paola Lell","Laura Luciano","Renee Torres","Renee Torres","Analia Olivera"],[null,11,1,7,2],[null,"CIC N° 7 NESTOR KIRCHNER","C.A.P.S. URBANO MENOR  JUAN JOSE FRANCO","LA CUCHILLA","CENTRO DE SALUD Nº 4 - SAN FRANCISCO"],[null,-58.54232548,-58.5107618104666,-58.510861,-58.502462],[null,-33.000479,-32.998113,-32.996689,-33.003064]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>gml_id<\/th>\n      <th>cartodb_id<\/th>\n      <th>descriptio<\/th>\n      <th>telefono<\/th>\n      <th>ts<\/th>\n      <th>fid<\/th>\n      <th>nombre<\/th>\n      <th>longitud<\/th>\n      <th>latitud<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[2,6,8,9]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+</div>
+<p>Hacemos la asignación de los radios censales a las áreas
+programáticas.</p>
+<div class="layout-chunk" data-layout="l-body">
+<details>
+<summary>
+Show code
+</summary>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='va'>join2</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://r-spatial.github.io/sf/reference/st_join.html'>st_join</a></span><span class='op'>(</span><span class='va'>join</span>,<span class='va'>radios_censales</span>,join<span class='op'>=</span> <span class='va'>st_intersects</span><span class='op'>)</span>
+</code></pre>
+</div>
+</details>
+</div>
+<p>Revisamos el resultado.</p>
+<div class="layout-chunk" data-layout="l-body">
+<details>
+<summary>
+Show code
+</summary>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='fu'>DT</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/DT/man/datatable.html'>datatable</a></span><span class='op'>(</span><span class='va'>join2</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span> <span class='fu'><a href='https://r-spatial.github.io/sf/reference/st_geometry.html'>st_drop_geometry</a></span><span class='op'>(</span><span class='op'>)</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span> <span class='fu'><a href='https://rdrr.io/r/utils/head.html'>head</a></span><span class='op'>(</span><span class='fl'>5</span><span class='op'>)</span><span class='op'>)</span>
+</code></pre>
+</div>
+</details>
+<div id="htmlwidget-32752e8faef79000e0d4" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-32752e8faef79000e0d4">{"x":{"filter":"none","vertical":false,"data":[["1","1.1","1.2","1.3","1.4"],["areas_programaticas.1","areas_programaticas.1","areas_programaticas.1","areas_programaticas.1","areas_programaticas.1"],[2,2,2,2,2],["Martinez Paiva 2260","Martinez Paiva 2260","Martinez Paiva 2260","Martinez Paiva 2260","Martinez Paiva 2260"],["03446-437002 INT 662","03446-437002 INT 662","03446-437002 INT 662","03446-437002 INT 662","03446-437002 INT 662"],["Paola Lell","Paola Lell","Paola Lell","Paola Lell","Paola Lell"],[null,null,null,null,null],[null,null,null,null,null],[null,null,null,null,null],[null,null,null,null,null],["radios_censales.1","radios_censales.13","radios_censales.14","radios_censales.15","radios_censales.16"],[5,5,5,5,5],[16,13,4,3,2],["F05_R06","F05_R13","F05_R04","F05_R03","F05_R02"],[252,417,0,0,0],[544,1722,509,147,365],["0","8,55","0","0","0"],[0,201,0,0,0],[0,4.13,0,0,0],[6113220.23,3165133.02,19815851.9,23669501.8,3505996.77],[{"type":"Point","coordinates":[-58.5671480095415,-33.0017015092324]},{"type":"Point","coordinates":[-58.5526132402978,-33.0205679534007]},{"type":"Point","coordinates":[-58.6090533259095,-33.0247380786293]},{"type":"Point","coordinates":[-58.6015902397092,-33.0473023707281]},{"type":"Point","coordinates":[-58.5469863326847,-33.0381254135659]}]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>gml_id.x<\/th>\n      <th>cartodb_id<\/th>\n      <th>descriptio<\/th>\n      <th>telefono<\/th>\n      <th>ts<\/th>\n      <th>fid<\/th>\n      <th>nombre<\/th>\n      <th>longitud<\/th>\n      <th>latitud<\/th>\n      <th>gml_id.y<\/th>\n      <th>fraccion<\/th>\n      <th>radio<\/th>\n      <th>f_r<\/th>\n      <th>hogares<\/th>\n      <th>habitantes<\/th>\n      <th>area_censo<\/th>\n      <th>hab_hectar<\/th>\n      <th>hab_hogare<\/th>\n      <th>area_gis<\/th>\n      <th>centroides<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[2,6,8,9,11,12,14,15,17,18,19]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+</div>
+<h4 id="medimos-las-distancias">Medimos las distancias 📏</h4>
+<p>Llegamos a una etapa por demás interesante, en la que obtendremos las
+distancias entre los centroides y los centros de salud. Para ello,
+utilizo el paquete OSRM que se basa en el proyecto que lleva el mismo
+nombre y que es un Servicio de enrutamiento basado en datos de
+<strong>OpenStreetMap</strong>. Vale decir, que el resultado de las
+mediciones es la distancia en tiempo a pie 🚶y en kilómetros.</p>
+<p>Vale aclarar que en el código de lectura de los radios censales se
+excluyen los radios 11 (Pueblo Belgrano) y 2, ya que abarcan territorio
+muy por fuera del ejido.</p>
+<p>Para tener las distancias, voy a:</p>
+<ul>
+<li><p>crear un data frame con los puntos de los establecimientos de
+salud y los centroides por area programatica.</p>
+<div class="layout-chunk" data-layout="l-body">
+<details>
+<summary>
+Show code
+</summary>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='co'>#Armo un dataframe de distancias</span>
+
+<span class='va'>distancias</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://r-spatial.github.io/sf/reference/st_join.html'>st_join</a></span><span class='op'>(</span><span class='va'>est_salud</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+       <span class='fu'><a href='https://dplyr.tidyverse.org/reference/select.html'>select</a></span><span class='op'>(</span><span class='st'>"fid"</span>,<span class='st'>"nombre"</span><span class='op'>)</span><span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+       <span class='fu'><a href='https://dplyr.tidyverse.org/reference/rename.html'>rename</a></span><span class='op'>(</span><span class='st'>"geomcs"</span><span class='op'>=</span><span class='st'>"geom"</span><span class='op'>)</span>,<span class='va'>join2</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+         <span class='fu'><a href='https://dplyr.tidyverse.org/reference/select.html'>select</a></span><span class='op'>(</span><span class='st'>"gml_id.y"</span>,<span class='st'>"centroides"</span><span class='op'>)</span>, join<span class='op'>=</span> <span class='va'>st_intersects</span><span class='op'>)</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'><a href='https://dplyr.tidyverse.org/reference/distinct.html'>distinct</a></span><span class='op'>(</span><span class='op'>)</span>
+</code></pre>
+</div>
+</details>
+</div></li>
+<li><p>separar el data frame anterior en uno de origen (from) y uno de
+destino (to).</p>
+<div class="layout-chunk" data-layout="l-body">
+<details>
+<summary>
+Show code
+</summary>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='va'>from</span> <span class='op'>&lt;-</span> <span class='va'>distancias</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'><a href='https://dplyr.tidyverse.org/reference/select.html'>select</a></span><span class='op'>(</span><span class='va'>gml_id.y</span>,<span class='va'>centroides</span><span class='op'>)</span><span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'><a href='https://r-spatial.github.io/sf/reference/st_geometry.html'>st_drop_geometry</a></span><span class='op'>(</span><span class='va'>geomcs</span><span class='op'>)</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'><a href='https://r-spatial.github.io/sf/reference/st_as_sf.html'>st_as_sf</a></span><span class='op'>(</span><span class='op'>)</span>
+
+<span class='va'>to</span> <span class='op'>&lt;-</span> <span class='va'>distancias</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'><a href='https://dplyr.tidyverse.org/reference/select.html'>select</a></span><span class='op'>(</span><span class='va'>fid</span>,<span class='va'>nombre</span>,<span class='va'>geomcs</span><span class='op'>)</span>
+</code></pre>
+</div>
+</details>
+</div></li>
+<li><p>obtener las distancias</p>
+<div class="layout-chunk" data-layout="l-body">
+<details>
+<summary>
+Show code
+</summary>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='va'>rutas</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span><span class='op'>(</span><span class='op'>)</span>
+
+<span class='kw'>for</span><span class='op'>(</span><span class='va'>i</span> <span class='kw'>in</span> <span class='fl'>1</span><span class='op'>:</span><span class='fu'><a href='https://rdrr.io/r/base/nrow.html'>nrow</a></span><span class='op'>(</span><span class='va'>from</span><span class='op'>)</span><span class='op'>)</span><span class='op'>{</span>
+
+<span class='va'>rutas</span><span class='op'>[[</span><span class='va'>i</span><span class='op'>]</span><span class='op'>]</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/pkg/osrm/man/osrmRoute.html'>osrmRoute</a></span><span class='op'>(</span>src <span class='op'>=</span> <span class='va'>from</span><span class='op'>[</span><span class='va'>i</span>,<span class='op'>]</span>,
+          dst <span class='op'>=</span> <span class='va'>to</span><span class='op'>[</span><span class='va'>i</span>,<span class='op'>]</span>,
+          overview <span class='op'>=</span> <span class='cn'>FALSE</span><span class='op'>)</span>
+<span class='op'>}</span>
+
+<span class='va'>df</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/do.call.html'>do.call</a></span><span class='op'>(</span><span class='va'>rbind</span>,<span class='va'>rutas</span><span class='op'>)</span>
+</code></pre>
+</div>
+</details>
+</div></li>
+<li><p>unificar los dataset.</p>
+<div class="layout-chunk" data-layout="l-body">
+<details>
+<summary>
+Show code
+</summary>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='va'>distancias_x_cs</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/cbind.html'>cbind</a></span><span class='op'>(</span><span class='va'>distancias</span><span class='op'>[</span>,<span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>1</span>,<span class='fl'>2</span><span class='op'>)</span><span class='op'>]</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span> <span class='fu'><a href='https://r-spatial.github.io/sf/reference/st_geometry.html'>st_drop_geometry</a></span><span class='op'>(</span><span class='op'>)</span>,<span class='va'>df</span><span class='op'>)</span>
+</code></pre>
+</div>
+</details>
+</div>
+<h4 id="mostramos-las-distancias-por-área-programática">Mostramos las
+distancias por área programática</h4>
+<div class="layout-chunk" data-layout="l-body">
+<details>
+<summary>
+Show code
+</summary>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='va'>join</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'><a href='https://r-spatial.github.io/sf/reference/st_geometry.html'>st_drop_geometry</a></span><span class='op'>(</span><span class='op'>)</span><span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'><a href='https://dplyr.tidyverse.org/reference/select.html'>select</a></span><span class='op'>(</span><span class='va'>gml_id</span>,<span class='va'>fid</span><span class='op'>)</span><span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'><a href='https://dplyr.tidyverse.org/reference/mutate-joins.html'>left_join</a></span><span class='op'>(</span><span class='va'>distancias_x_cs</span>, by<span class='op'>=</span> <span class='st'>"fid"</span><span class='op'>)</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'>DT</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/DT/man/datatable.html'>datatable</a></span><span class='op'>(</span>options <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span><span class='op'>(</span>pageLength <span class='op'>=</span> <span class='fl'>25</span>, dom <span class='op'>=</span> <span class='st'>'tip'</span><span class='op'>)</span><span class='op'>)</span>
+</code></pre>
+</div>
+</details>
+<div id="htmlwidget-0e085003095fecfcbcc9" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-0e085003095fecfcbcc9">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","50","51","52","53","54","55","56","57","58","59","60","61","62","63","64","65","66","67","68","69","70","71","72","73","74","75","76","77","78","79","80","81","82","83","84","85","86","87","88","89","90","91","92","93","94","95","96","97","98","99","100","101","102","103","104","105","106","107","108","109","110","111","112","113","114","115","116","117","118","119","120","121","122","123","124","125","126","127","128","129","130","131","132","133","134","135","136","137","138","139","140","141","142","143","144","145","146","147","148","149","150","151","152","153","154","155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171","172","173","174","175","176","177","178","179","180","181","182","183","184","185","186","187","188","189","190","191","192","193","194","195","196","197","198","199","200","201","202","203","204","205","206","207","208","209","210"],["areas_programaticas.1","areas_programaticas.2","areas_programaticas.2","areas_programaticas.2","areas_programaticas.2","areas_programaticas.2","areas_programaticas.2","areas_programaticas.2","areas_programaticas.2","areas_programaticas.2","areas_programaticas.2","areas_programaticas.2","areas_programaticas.2","areas_programaticas.2","areas_programaticas.2","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.3","areas_programaticas.4","areas_programaticas.4","areas_programaticas.4","areas_programaticas.4","areas_programaticas.4","areas_programaticas.4","areas_programaticas.4","areas_programaticas.4","areas_programaticas.4","areas_programaticas.4","areas_programaticas.4","areas_programaticas.5","areas_programaticas.5","areas_programaticas.5","areas_programaticas.5","areas_programaticas.5","areas_programaticas.5","areas_programaticas.5","areas_programaticas.8","areas_programaticas.8","areas_programaticas.8","areas_programaticas.8","areas_programaticas.8","areas_programaticas.8","areas_programaticas.8","areas_programaticas.8","areas_programaticas.8","areas_programaticas.8","areas_programaticas.8","areas_programaticas.8","areas_programaticas.8","areas_programaticas.8","areas_programaticas.8","areas_programaticas.8","areas_programaticas.8","areas_programaticas.8","areas_programaticas.8","areas_programaticas.8","areas_programaticas.8","areas_programaticas.8","areas_programaticas.8","areas_programaticas.8","areas_programaticas.8","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.9","areas_programaticas.11","areas_programaticas.11","areas_programaticas.11","areas_programaticas.11","areas_programaticas.11","areas_programaticas.11","areas_programaticas.11","areas_programaticas.11","areas_programaticas.11","areas_programaticas.11","areas_programaticas.11","areas_programaticas.11","areas_programaticas.11","areas_programaticas.11","areas_programaticas.11","areas_programaticas.11","areas_programaticas.11","areas_programaticas.11","areas_programaticas.11","areas_programaticas.11","areas_programaticas.11","areas_programaticas.11","areas_programaticas.12","areas_programaticas.12","areas_programaticas.12","areas_programaticas.12","areas_programaticas.12","areas_programaticas.12","areas_programaticas.12","areas_programaticas.12","areas_programaticas.12","areas_programaticas.12","areas_programaticas.12","areas_programaticas.12","areas_programaticas.12","areas_programaticas.12","areas_programaticas.12","areas_programaticas.12","areas_programaticas.12","areas_programaticas.12","areas_programaticas.12","areas_programaticas.12","areas_programaticas.12"],[null,11,11,11,11,11,11,11,11,11,11,11,11,11,11,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,2,2,2,2,2,2,2,2,2,2,2,10,10,10,10,10,10,10,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4],[null,"CIC N° 7 NESTOR KIRCHNER","CIC N° 7 NESTOR KIRCHNER","CIC N° 7 NESTOR KIRCHNER","CIC N° 7 NESTOR KIRCHNER","CIC N° 7 NESTOR KIRCHNER","CIC N° 7 NESTOR KIRCHNER","CIC N° 7 NESTOR KIRCHNER","CIC N° 7 NESTOR KIRCHNER","CIC N° 7 NESTOR KIRCHNER","CIC N° 7 NESTOR KIRCHNER","CIC N° 7 NESTOR KIRCHNER","CIC N° 7 NESTOR KIRCHNER","CIC N° 7 NESTOR KIRCHNER","CIC N° 7 NESTOR KIRCHNER","C.A.P.S. URBANO MENOR  JUAN JOSE FRANCO","C.A.P.S. URBANO MENOR  JUAN JOSE FRANCO","C.A.P.S. URBANO MENOR  JUAN JOSE FRANCO","C.A.P.S. URBANO MENOR  JUAN JOSE FRANCO","C.A.P.S. URBANO MENOR  JUAN JOSE FRANCO","C.A.P.S. URBANO MENOR  JUAN JOSE FRANCO","C.A.P.S. URBANO MENOR  JUAN JOSE FRANCO","C.A.P.S. URBANO MENOR  JUAN JOSE FRANCO","C.A.P.S. URBANO MENOR  JUAN JOSE FRANCO","C.A.P.S. URBANO MENOR  JUAN JOSE FRANCO","C.A.P.S. URBANO MENOR  JUAN JOSE FRANCO","C.A.P.S. URBANO MENOR  JUAN JOSE FRANCO","C.A.P.S. URBANO MENOR  JUAN JOSE FRANCO","C.A.P.S. URBANO MENOR  JUAN JOSE FRANCO","C.A.P.S. URBANO MENOR  JUAN JOSE FRANCO","C.A.P.S. URBANO MENOR  JUAN JOSE FRANCO","C.A.P.S. URBANO MENOR  JUAN JOSE FRANCO","C.A.P.S. URBANO MENOR  JUAN JOSE FRANCO","C.A.P.S. URBANO MENOR  JUAN JOSE FRANCO","C.A.P.S. URBANO MENOR  JUAN JOSE FRANCO","C.A.P.S. URBANO MENOR  JUAN JOSE FRANCO","C.A.P.S. URBANO MENOR  JUAN JOSE FRANCO","C.A.P.S. URBANO MENOR  JUAN JOSE FRANCO","LA CUCHILLA","LA CUCHILLA","LA CUCHILLA","LA CUCHILLA","LA CUCHILLA","LA CUCHILLA","LA CUCHILLA","LA CUCHILLA","LA CUCHILLA","LA CUCHILLA","LA CUCHILLA","LA CUCHILLA","LA CUCHILLA","LA CUCHILLA","LA CUCHILLA","LA CUCHILLA","LA CUCHILLA","LA CUCHILLA","LA CUCHILLA","LA CUCHILLA","LA CUCHILLA","LA CUCHILLA","LA CUCHILLA","CENTRO DE SALUD Nº 4 - SAN FRANCISCO","CENTRO DE SALUD Nº 4 - SAN FRANCISCO","CENTRO DE SALUD Nº 4 - SAN FRANCISCO","CENTRO DE SALUD Nº 4 - SAN FRANCISCO","CENTRO DE SALUD Nº 4 - SAN FRANCISCO","CENTRO DE SALUD Nº 4 - SAN FRANCISCO","CENTRO DE SALUD Nº 4 - SAN FRANCISCO","CENTRO DE SALUD Nº 4 - SAN FRANCISCO","CENTRO DE SALUD Nº 4 - SAN FRANCISCO","CENTRO DE SALUD Nº 4 - SAN FRANCISCO","CENTRO DE SALUD Nº 4 - SAN FRANCISCO","CENTRO DE SALUD Nº 2 - SUBURBIO SUR","CENTRO DE SALUD Nº 2 - SUBURBIO SUR","CENTRO DE SALUD Nº 2 - SUBURBIO SUR","CENTRO DE SALUD Nº 2 - SUBURBIO SUR","CENTRO DE SALUD Nº 2 - SUBURBIO SUR","CENTRO DE SALUD Nº 2 - SUBURBIO SUR","CENTRO DE SALUD Nº 2 - SUBURBIO SUR","CENTRO DE SALUD SAN ISIDRO","CENTRO DE SALUD SAN ISIDRO","CENTRO DE SALUD SAN ISIDRO","CENTRO DE SALUD SAN ISIDRO","CENTRO DE SALUD SAN ISIDRO","CENTRO DE SALUD SAN ISIDRO","CENTRO DE SALUD SAN ISIDRO","CENTRO DE SALUD SAN ISIDRO","CENTRO DE SALUD SAN ISIDRO","CENTRO DE SALUD SAN ISIDRO","CENTRO DE SALUD SAN ISIDRO","CENTRO DE SALUD SAN ISIDRO","CENTRO DE SALUD SAN ISIDRO","CENTRO DE SALUD SAN ISIDRO","CENTRO DE SALUD SAN ISIDRO","CENTRO DE SALUD SAN ISIDRO","CENTRO DE SALUD SAN ISIDRO","CENTRO DE SALUD SAN ISIDRO","CENTRO DE SALUD SAN ISIDRO","CENTRO DE SALUD SAN ISIDRO","CENTRO DE SALUD SAN ISIDRO","CENTRO DE SALUD SAN ISIDRO","CENTRO DE SALUD SAN ISIDRO","CENTRO DE SALUD SAN ISIDRO","CENTRO DE SALUD SAN ISIDRO","HOSPITAL CENTENARIO","HOSPITAL CENTENARIO","HOSPITAL CENTENARIO","HOSPITAL CENTENARIO","HOSPITAL CENTENARIO","HOSPITAL CENTENARIO","HOSPITAL CENTENARIO","HOSPITAL CENTENARIO","HOSPITAL CENTENARIO","HOSPITAL CENTENARIO","HOSPITAL CENTENARIO","HOSPITAL CENTENARIO","HOSPITAL CENTENARIO","HOSPITAL CENTENARIO","HOSPITAL CENTENARIO","HOSPITAL CENTENARIO","HOSPITAL CENTENARIO","HOSPITAL CENTENARIO","HOSPITAL CENTENARIO","HOSPITAL CENTENARIO","HOSPITAL CENTENARIO","C.A.P.S. URBANO JUAN BAGGIO","C.A.P.S. URBANO JUAN BAGGIO","C.A.P.S. URBANO JUAN BAGGIO","C.A.P.S. URBANO JUAN BAGGIO","C.A.P.S. URBANO JUAN BAGGIO","C.A.P.S. URBANO JUAN BAGGIO","C.A.P.S. URBANO JUAN BAGGIO","C.A.P.S. URBANO JUAN BAGGIO","C.A.P.S. URBANO JUAN BAGGIO","C.A.P.S. URBANO JUAN BAGGIO","C.A.P.S. URBANO JUAN BAGGIO","C.A.P.S. URBANO JUAN BAGGIO","C.A.P.S. URBANO JUAN BAGGIO","C.A.P.S. URBANO JUAN BAGGIO","C.A.P.S. URBANO JUAN BAGGIO","C.A.P.S. URBANO JUAN BAGGIO","C.A.P.S. URBANO JUAN BAGGIO","C.A.P.S. URBANO JUAN BAGGIO","C.A.P.S. URBANO JUAN BAGGIO","C.A.P.S. URBANO JUAN BAGGIO","C.A.P.S. URBANO JUAN BAGGIO","CENTRO DE SALUD Nº 3 - VILLA MARIA","CENTRO DE SALUD Nº 3 - VILLA MARIA","CENTRO DE SALUD Nº 3 - VILLA MARIA","CENTRO DE SALUD Nº 3 - VILLA MARIA","CENTRO DE SALUD Nº 3 - VILLA MARIA","CENTRO DE SALUD Nº 3 - VILLA MARIA","CENTRO DE SALUD Nº 3 - VILLA MARIA","CENTRO DE SALUD Nº 3 - VILLA MARIA","CENTRO DE SALUD Nº 3 - VILLA MARIA","CENTRO DE SALUD Nº 3 - VILLA MARIA","CENTRO DE SALUD Nº 3 - VILLA MARIA","CENTRO DE SALUD Nº 3 - VILLA MARIA","CENTRO DE SALUD Nº 3 - VILLA MARIA","CENTRO DE SALUD Nº 3 - VILLA MARIA","CENTRO DE SALUD Nº 3 - VILLA MARIA","CENTRO DE SALUD Nº 3 - VILLA MARIA","CENTRO DE SALUD Nº 3 - VILLA MARIA","CENTRO DE SALUD Nº 3 - VILLA MARIA","CENTRO DE SALUD Nº 3 - VILLA MARIA","CENTRO DE SALUD Nº 3 - VILLA MARIA","CENTRO DE SALUD Nº 3 - VILLA MARIA","DISPENSARIO Nº 1 - PUEBLO NUEVO","DISPENSARIO Nº 1 - PUEBLO NUEVO","DISPENSARIO Nº 1 - PUEBLO NUEVO","DISPENSARIO Nº 1 - PUEBLO NUEVO","DISPENSARIO Nº 1 - PUEBLO NUEVO","DISPENSARIO Nº 1 - PUEBLO NUEVO","DISPENSARIO Nº 1 - PUEBLO NUEVO","DISPENSARIO Nº 1 - PUEBLO NUEVO","DISPENSARIO Nº 1 - PUEBLO NUEVO","DISPENSARIO Nº 1 - PUEBLO NUEVO","DISPENSARIO Nº 1 - PUEBLO NUEVO","DISPENSARIO Nº 1 - PUEBLO NUEVO","DISPENSARIO Nº 1 - PUEBLO NUEVO","DISPENSARIO Nº 1 - PUEBLO NUEVO","DISPENSARIO Nº 1 - PUEBLO NUEVO","DISPENSARIO Nº 1 - PUEBLO NUEVO","DISPENSARIO Nº 1 - PUEBLO NUEVO","DISPENSARIO Nº 1 - PUEBLO NUEVO","DISPENSARIO Nº 1 - PUEBLO NUEVO","DISPENSARIO Nº 1 - PUEBLO NUEVO","DISPENSARIO Nº 1 - PUEBLO NUEVO","DISPENSARIO Nº 1 - PUEBLO NUEVO","CENTRO DE SALUD Nº 6 - MUNILLA","CENTRO DE SALUD Nº 6 - MUNILLA","CENTRO DE SALUD Nº 6 - MUNILLA","CENTRO DE SALUD Nº 6 - MUNILLA","CENTRO DE SALUD Nº 6 - MUNILLA","CENTRO DE SALUD Nº 6 - MUNILLA","CENTRO DE SALUD Nº 6 - MUNILLA","CENTRO DE SALUD Nº 6 - MUNILLA","CENTRO DE SALUD Nº 6 - MUNILLA","CENTRO DE SALUD Nº 6 - MUNILLA","CENTRO DE SALUD Nº 6 - MUNILLA","CENTRO DE SALUD Nº 6 - MUNILLA","CENTRO DE SALUD Nº 6 - MUNILLA","CENTRO DE SALUD Nº 6 - MUNILLA","CENTRO DE SALUD Nº 6 - MUNILLA","CENTRO DE SALUD Nº 6 - MUNILLA","CENTRO DE SALUD Nº 6 - MUNILLA","CENTRO DE SALUD Nº 6 - MUNILLA","CENTRO DE SALUD Nº 6 - MUNILLA","CENTRO DE SALUD Nº 6 - MUNILLA","CENTRO DE SALUD Nº 6 - MUNILLA"],[null,7.7,5.3,11.88,2.08,4.54,4,6.08,2.8,3.16,3.03,5.28,3.12,3.12,2.82,4.69,2.01,1.31,4.42,4.18,3.68,2.75,1.52,0.68,3.26,3.32,2.62,1.8,1.63,1.54,2.3,2.26,2.5,3.03,4.18,2.97,3.69,3.43,4.6,1.92,0.14,5.15,4.91,3.82,3.48,2.25,1.18,3.98,4.04,3.35,2.53,2.26,2.17,2.93,2.89,3.01,3.76,4.91,3.6,4.42,4.16,3.28,7.21,1.03,3.43,1.78,1.46,1.5,1.24,2.06,2.42,2.2,6.31,10.11,11.88,2.62,1.05,1.14,2.79,6.47,5.19,5.61,3.16,3.7,4.81,4.28,5.21,5.06,4.98,4.27,3.93,4.36,3.92,3.75,2.13,3.08,1.1,2.36,2.86,4.17,2.75,3.06,3.62,4.27,6.35,6.63,5.82,4.7,3.92,3.27,2.67,2.92,3.88,2.84,2.23,2.1,1.9,2.87,1.66,1.45,2.24,1.77,5.2,6.16,4.3,9.46,6.02,2.23,0.44,1.5,2.32,3.43,3.37,3.93,3.67,3.54,3.84,3.92,4.73,4.73,4.19,4.5,3.88,2.57,1.28,1.87,10.09,6.64,2.63,1.07,2.12,2.73,3.84,3.78,4.56,4.09,3.96,4.26,4.33,5.14,5.14,4.6,4.91,4.3,1.94,0.77,1.45,2.58,1.85,2.38,2.63,2.94,3.15,3.2,3.51,3.38,3.67,4.33,3.72,3.32,3.53,3.76,3.31,2.65,1.44,0.91,2.08,0.55,2.01,5.39,2.26,2.26,2.23,2.91,3.25,3.62,3.96,3.46,2.88,2.46,2.03,2.68,1.71,0.88,1.55,0.8,1.78,2.27,2.85,3.64],[null,3.19,2.4,6.08,0.76,1.64,1.6,3.19,1.05,1.23,1.05,2.33,1.16,1.17,1.04,1.84,0.75,0.45,1.93,2.22,1.63,1.31,0.71,0.25,1.41,1.56,1.07,0.76,0.9,0.69,1.29,1.38,0.97,1.34,2.11,1.7,1.62,1.51,1.76,0.67,0.06,2.2,2.49,1.45,1.58,0.98,0.49,1.68,1.83,1.33,1.02,1.14,0.93,1.54,1.63,1.22,1.61,2.38,1.95,1.89,1.78,1.24,3.12,0.39,1.58,0.78,0.52,0.57,0.5,0.84,1.27,0.91,3.19,8.29,9.01,1.22,0.53,0.49,1.1,2.58,2.09,2.26,1.35,1.64,2.1,1.91,2.47,2.4,2.29,2.05,1.54,1.99,1.5,1.62,0.82,1.28,0.37,1.02,1.12,1.91,1.08,1.29,1.54,1.94,3.1,3.45,3.39,2.85,2.22,2.15,1.43,1.59,2.06,1.69,1.17,1.02,0.72,1.41,0.6,0.52,0.94,0.85,3.19,3.4,2.75,4.74,2.42,0.98,0.17,0.6,1.08,1.57,1.63,1.52,2.1,1.91,2.14,2.17,2.46,2.71,2.29,2.57,2.32,1.05,0.48,0.77,5,2.68,1,0.43,0.86,1.16,1.65,1.71,1.78,2.18,2,2.22,2.25,2.54,2.79,2.37,2.65,2.4,0.79,0.27,0.56,1.02,0.72,1.05,1.19,1.43,1.47,1.57,2.04,1.85,2.08,2.51,2.26,1.46,1.51,1.83,1.56,1.09,0.57,0.34,0.77,0.15,0.81,3.05,1.02,1.22,1.18,1.45,1.5,2.12,2.2,1.97,1.87,1.14,1.09,1.06,0.66,0.34,0.64,0.37,0.69,1.07,1.25,1.51]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>gml_id<\/th>\n      <th>fid<\/th>\n      <th>nombre<\/th>\n      <th>duration<\/th>\n      <th>distance<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":25,"dom":"tip","columnDefs":[{"className":"dt-right","targets":[2,4,5]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+</div></li>
+</ul>
+<h4 id="resumen-distancias-tiempo-a-pie">Resumen distancias tiempo “a
+pie”</h4>
+<div class="layout-chunk" data-layout="l-body">
+<details>
+<summary>
+Show code
+</summary>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='va'>join</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'><a href='https://r-spatial.github.io/sf/reference/st_geometry.html'>st_drop_geometry</a></span><span class='op'>(</span><span class='op'>)</span><span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'><a href='https://dplyr.tidyverse.org/reference/select.html'>select</a></span><span class='op'>(</span><span class='va'>gml_id</span>,<span class='va'>fid</span><span class='op'>)</span><span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'><a href='https://dplyr.tidyverse.org/reference/mutate-joins.html'>left_join</a></span><span class='op'>(</span><span class='va'>distancias_x_cs</span>, by<span class='op'>=</span> <span class='st'>"fid"</span><span class='op'>)</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'><a href='https://dplyr.tidyverse.org/reference/group_by.html'>group_by</a></span><span class='op'>(</span><span class='va'>gml_id</span><span class='op'>)</span><span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'><a href='https://dplyr.tidyverse.org/reference/filter.html'>filter</a></span><span class='op'>(</span><span class='op'>!</span><span class='fu'><a href='https://rdrr.io/r/base/NA.html'>is.na</a></span><span class='op'>(</span><span class='va'>duration</span><span class='op'>)</span><span class='op'>)</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'><a href='https://r-spatial.github.io/sf/reference/tidyverse.html'>summarise</a></span><span class='op'>(</span>min<span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/Round.html'>round</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/Extremes.html'>min</a></span><span class='op'>(</span><span class='va'>duration</span><span class='op'>)</span>,<span class='fl'>1</span><span class='op'>)</span>,
+            prom<span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/Round.html'>round</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/mean.html'>mean</a></span><span class='op'>(</span><span class='va'>duration</span><span class='op'>)</span>,<span class='fl'>1</span><span class='op'>)</span>,
+            mediana<span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/Round.html'>round</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/stats/median.html'>median</a></span><span class='op'>(</span><span class='va'>duration</span><span class='op'>)</span>,<span class='fl'>1</span><span class='op'>)</span>,
+            max<span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/Round.html'>round</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/Extremes.html'>max</a></span><span class='op'>(</span><span class='va'>duration</span><span class='op'>)</span>,<span class='fl'>1</span><span class='op'>)</span><span class='op'>)</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'><a href='https://dplyr.tidyverse.org/reference/arrange.html'>arrange</a></span><span class='op'>(</span><span class='va'>prom</span><span class='op'>)</span><span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'>kableExtra</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/kableExtra/man/kbl.html'>kbl</a></span><span class='op'>(</span>format.args <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span><span class='op'>(</span>big.mark <span class='op'>=</span> <span class='st'>"."</span>,
+                                     decimal.mark<span class='op'>=</span> <span class='st'>","</span><span class='op'>)</span><span class='op'>)</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'>kableExtra</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/kableExtra/man/kable_classic.html'>kable_classic_2</a></span><span class='op'>(</span><span class='op'>)</span>
+</code></pre>
+</div>
+</details>
+<table class=" lightable-classic-2" style="font-family: &quot;Arial Narrow&quot;, &quot;Source Sans Pro&quot;, sans-serif; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+gml_id
+</th>
+<th style="text-align:right;">
+min
+</th>
+<th style="text-align:right;">
+prom
+</th>
+<th style="text-align:right;">
+mediana
+</th>
+<th style="text-align:right;">
+max
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+areas_programaticas.4
+</td>
+<td style="text-align:right;">
+1,0
+</td>
+<td style="text-align:right;">
+2,5
+</td>
+<td style="text-align:right;">
+2,1
+</td>
+<td style="text-align:right;">
+7,2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+areas_programaticas.12
+</td>
+<td style="text-align:right;">
+0,8
+</td>
+<td style="text-align:right;">
+2,6
+</td>
+<td style="text-align:right;">
+2,5
+</td>
+<td style="text-align:right;">
+5,4
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+areas_programaticas.11
+</td>
+<td style="text-align:right;">
+0,6
+</td>
+<td style="text-align:right;">
+2,8
+</td>
+<td style="text-align:right;">
+3,0
+</td>
+<td style="text-align:right;">
+4,3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+areas_programaticas.3
+</td>
+<td style="text-align:right;">
+0,1
+</td>
+<td style="text-align:right;">
+3,0
+</td>
+<td style="text-align:right;">
+3,0
+</td>
+<td style="text-align:right;">
+5,2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+areas_programaticas.9
+</td>
+<td style="text-align:right;">
+0,4
+</td>
+<td style="text-align:right;">
+3,7
+</td>
+<td style="text-align:right;">
+3,8
+</td>
+<td style="text-align:right;">
+10,1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+areas_programaticas.8
+</td>
+<td style="text-align:right;">
+1,1
+</td>
+<td style="text-align:right;">
+3,9
+</td>
+<td style="text-align:right;">
+3,9
+</td>
+<td style="text-align:right;">
+6,5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+areas_programaticas.2
+</td>
+<td style="text-align:right;">
+2,1
+</td>
+<td style="text-align:right;">
+4,6
+</td>
+<td style="text-align:right;">
+3,6
+</td>
+<td style="text-align:right;">
+11,9
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+areas_programaticas.5
+</td>
+<td style="text-align:right;">
+1,0
+</td>
+<td style="text-align:right;">
+5,1
+</td>
+<td style="text-align:right;">
+2,8
+</td>
+<td style="text-align:right;">
+11,9
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h4 id="resumen-distancias-en-kilómetros">Resumen distancias en
+kilómetros</h4>
+<div class="layout-chunk" data-layout="l-body">
+<details>
+<summary>
+Show code
+</summary>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='va'>join</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'><a href='https://r-spatial.github.io/sf/reference/st_geometry.html'>st_drop_geometry</a></span><span class='op'>(</span><span class='op'>)</span><span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'><a href='https://dplyr.tidyverse.org/reference/select.html'>select</a></span><span class='op'>(</span><span class='va'>gml_id</span>,<span class='va'>fid</span><span class='op'>)</span><span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'><a href='https://dplyr.tidyverse.org/reference/mutate-joins.html'>left_join</a></span><span class='op'>(</span><span class='va'>distancias_x_cs</span>, by<span class='op'>=</span> <span class='st'>"fid"</span><span class='op'>)</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'><a href='https://dplyr.tidyverse.org/reference/group_by.html'>group_by</a></span><span class='op'>(</span><span class='va'>gml_id</span><span class='op'>)</span><span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'><a href='https://dplyr.tidyverse.org/reference/filter.html'>filter</a></span><span class='op'>(</span><span class='op'>!</span><span class='fu'><a href='https://rdrr.io/r/base/NA.html'>is.na</a></span><span class='op'>(</span><span class='va'>duration</span><span class='op'>)</span><span class='op'>)</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'><a href='https://r-spatial.github.io/sf/reference/tidyverse.html'>summarise</a></span><span class='op'>(</span>min<span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/Round.html'>round</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/Extremes.html'>min</a></span><span class='op'>(</span><span class='va'>distance</span><span class='op'>)</span>,<span class='fl'>1</span><span class='op'>)</span>,
+            prom<span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/Round.html'>round</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/mean.html'>mean</a></span><span class='op'>(</span><span class='va'>distance</span><span class='op'>)</span>,<span class='fl'>1</span><span class='op'>)</span>,
+            mediana<span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/Round.html'>round</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/stats/median.html'>median</a></span><span class='op'>(</span><span class='va'>distance</span><span class='op'>)</span>,<span class='fl'>1</span><span class='op'>)</span>,
+            max<span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/Round.html'>round</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/Extremes.html'>max</a></span><span class='op'>(</span><span class='va'>distance</span><span class='op'>)</span>,<span class='fl'>1</span><span class='op'>)</span><span class='op'>)</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'><a href='https://dplyr.tidyverse.org/reference/arrange.html'>arrange</a></span><span class='op'>(</span><span class='va'>prom</span><span class='op'>)</span><span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'>kableExtra</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/kableExtra/man/kbl.html'>kbl</a></span><span class='op'>(</span>format.args <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span><span class='op'>(</span>big.mark <span class='op'>=</span> <span class='st'>"."</span>,
+                                     decimal.mark<span class='op'>=</span> <span class='st'>","</span><span class='op'>)</span><span class='op'>)</span> <span class='op'><a href='https://magrittr.tidyverse.org/reference/pipe.html'>%&gt;%</a></span>
+  <span class='fu'>kableExtra</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/kableExtra/man/kable_classic.html'>kable_classic_2</a></span><span class='op'>(</span><span class='op'>)</span>
+</code></pre>
+</div>
+</details>
+<table class=" lightable-classic-2" style="font-family: &quot;Arial Narrow&quot;, &quot;Source Sans Pro&quot;, sans-serif; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+gml_id
+</th>
+<th style="text-align:right;">
+min
+</th>
+<th style="text-align:right;">
+prom
+</th>
+<th style="text-align:right;">
+mediana
+</th>
+<th style="text-align:right;">
+max
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+areas_programaticas.4
+</td>
+<td style="text-align:right;">
+0,4
+</td>
+<td style="text-align:right;">
+1,1
+</td>
+<td style="text-align:right;">
+0,8
+</td>
+<td style="text-align:right;">
+3,1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+areas_programaticas.11
+</td>
+<td style="text-align:right;">
+0,1
+</td>
+<td style="text-align:right;">
+1,3
+</td>
+<td style="text-align:right;">
+1,4
+</td>
+<td style="text-align:right;">
+2,5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+areas_programaticas.12
+</td>
+<td style="text-align:right;">
+0,3
+</td>
+<td style="text-align:right;">
+1,3
+</td>
+<td style="text-align:right;">
+1,2
+</td>
+<td style="text-align:right;">
+3,0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+areas_programaticas.3
+</td>
+<td style="text-align:right;">
+0,1
+</td>
+<td style="text-align:right;">
+1,4
+</td>
+<td style="text-align:right;">
+1,4
+</td>
+<td style="text-align:right;">
+2,5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+areas_programaticas.8
+</td>
+<td style="text-align:right;">
+0,4
+</td>
+<td style="text-align:right;">
+1,7
+</td>
+<td style="text-align:right;">
+1,6
+</td>
+<td style="text-align:right;">
+2,6
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+areas_programaticas.9
+</td>
+<td style="text-align:right;">
+0,2
+</td>
+<td style="text-align:right;">
+1,9
+</td>
+<td style="text-align:right;">
+1,9
+</td>
+<td style="text-align:right;">
+5,0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+areas_programaticas.2
+</td>
+<td style="text-align:right;">
+0,8
+</td>
+<td style="text-align:right;">
+2,0
+</td>
+<td style="text-align:right;">
+1,4
+</td>
+<td style="text-align:right;">
+6,1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+areas_programaticas.5
+</td>
+<td style="text-align:right;">
+0,5
+</td>
+<td style="text-align:right;">
+3,4
+</td>
+<td style="text-align:right;">
+1,2
+</td>
+<td style="text-align:right;">
+9,0
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="comentarios-finales">Comentarios finales 🔈</h3>
+<p>✔️ En relación al objetivo principal del ejercicio, puede observase
+que el área programática 4, es la que tiene mayor accesibilidad con un
+promedio de 2,5 minutos y 1,1 Km al centro de salud San Francisco. En el
+opuesto el área programática 5 mostró la mayor distancia con un promedio
+de 5,1 minutos y 3,4 Km al centro de salud Suburbio Sur. Sin dudas un
+promedio de 5 minutos al centro de salud en el área con menor
+accesibilidad da cuentas de una amplia cobertura del sistema de
+salud.</p>
+<p>✔️En lo que respecta a la metodología sin dudas muestra limitaciones.
+Una de ellas es el hecho de que algunos radios censales caen en mas de
+un área programática. Por ej: el radio censal 13 cae dentro de Villa
+Maria, Suburbio Sur, Médanos. Esto implica que un habitante de esta zona
+cuenta con mayor oferta. Otra limitación es haber tomado los centroides,
+se podría mejorar esto tomando puntos al azar dentro de los radios
+censales.</p>
+<p>✔️Por ultimo espero haber podido mostrar la potencialidad que tiene
+estos datos y la necesidad de bregar porque los mismos sigan siendo de
+acceso publico y se mantengan los estándares de calidad e
+interoperabilidad.</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
+<section class="footnotes footnotes-end-of-document"
+role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p><strong>WMS</strong>: permite la
+visualización de información geográfica a partir de una representación
+de ésta, de una imagen del mundo real para un área solicitada por el
+usuario. Puede organizarse en una o más capas de datos que pueden
+visualizarse u ocultarse una a una. <strong>WFS</strong> : permite el
+acceso y consulta de los atributos de un vector (feature) que representa
+información geográfica como un río, una ciudad o un lago, con una
+geometría descrita por un conjunto de coordenadas. El servicio WFS
+permite no solo visualizar la información tal y como permite un WMS,
+sino también consultarla y editarla libremente<a href="#fnref1"
+class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2" role="doc-endnote"><p>Las teselas vectoriales son paquetes
+de datos geográficos, empaquetados en «mosaicos» predefinidos de forma
+aproximadamente cuadrada para su transferencia a través de la web.<a
+href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3" role="doc-endnote"><p>No necesariamente las personas buscan
+atención siguiendo esta racionalidad, ya que existen múltiples razones
+para orientarse por otro establecimiento, como puede ser la complejidad
+del tratamiento requerido.<a href="#fnref3" class="footnote-back"
+role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+<!--radix_placeholder_article_footer-->
+<!--/radix_placeholder_article_footer-->
+</div>
+
+<div class="d-appendix">
+</div>
+
+
+<!--radix_placeholder_site_after_body-->
+<!--/radix_placeholder_site_after_body-->
+<!--radix_placeholder_appendices-->
+<div class="appendix-bottom"></div>
+<!--/radix_placeholder_appendices-->
+<!--radix_placeholder_navigation_after_body-->
+<!--/radix_placeholder_navigation_after_body-->
+
+</body>
+
+</html>
