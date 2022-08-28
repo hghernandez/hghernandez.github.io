@@ -2,7 +2,7 @@
 title: "Consumo de geoservicios con R y su uso para la gestión local"
 description: |
   En este post voy a mostrar el uso de algunas librerias de R para el consumo de geoservicios. Además, veremos como visualizar las capas de geoservicios con leaflet y haremos algunas operaciones para apoyar la gestión local. Espero que este mundo los atrape tanto como a mí.
-preview: imagenes/gchu_sig.png
+preview: imagenes/gchu_sig.PNG
 author:
   - name: Hernan Hernandez
     url: https://example.com/norajones
