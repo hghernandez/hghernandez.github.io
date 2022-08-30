@@ -1,5 +1,6 @@
 name: "Portfolio"
 title: "Hernan Hernandez"
+theme: theme.css
 description: |
   Mi Blog
 output_dir: "docs"

@@ -125,7 +125,8 @@ centroides <- radios_censales %>%
 join2 <- st_join(join,radios_censales,join= st_intersects)
 
 
-
+DT::datatable(join2 %>% st_drop_geometry() %>% head(5),
+              options = list(scrollx=TRUE))
 #Armo un dataframe de distancias
 
 distancias <- st_join(est_salud %>%

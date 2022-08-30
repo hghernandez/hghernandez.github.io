@@ -246,7 +246,8 @@ join <- st_join(areas_programaticas,csalud,join= st_intersects)
 Veamos que los centros de salud han sido asignado a areas programatica
 
 ```{r}
-DT::datatable(join %>% st_drop_geometry() %>% head(5))
+DT::datatable(join %>% st_drop_geometry() %>% head(5),
+              options = list(scrollX=TRUE))
 ```
 
 Hacemos la asignación de los radios censales a las áreas programáticas.
@@ -258,7 +259,8 @@ join2 <- st_join(join,radios_censales,join= st_intersects)
 Revisamos el resultado.
 
 ```{r}
-DT::datatable(join2 %>% st_drop_geometry() %>% head(5))
+DT::datatable(join2 %>% st_drop_geometry() %>% head(5),
+               options = list(scrollX=TRUE))
 ```
 
 #### Medimos las distancias 📏
