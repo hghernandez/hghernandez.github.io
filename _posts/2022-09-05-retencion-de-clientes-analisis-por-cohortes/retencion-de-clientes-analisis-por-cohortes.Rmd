@@ -1,0 +1,206 @@
+---
+title: "Retencion de clientes: Analisis por cohortes"
+description: |
+  En la estrategia comercial de cualquier emprendimiento uno de los KPI´s que se vuelve imprescindible monitorear es cuántos clientes nos siguen comprando en un período de tiempo dado o cuantos clientes nos han abandonado. En este post voy a mostrar como calcular este indicador mediante el análisis de cohortes.
+preview: imagenes/retencion.jpg
+author:
+  - name: Hernan Hernandez
+    url: https://example.com/norajones
+date: 2022-09-05
+output:
+  distill::distill_article:
+    self_contained: false
+    toc: true
+    toc_depth: 2
+    toc_float: true
+    code_folding: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  comment = "##",
+  R.options = list(width = 60)
+)
+```
+
+# Introducción 🚀
+
+Bienvenidos y bienvenidas a un nuevo **post** sobre un **KPI** (Key Performance Indicator) muy importante al momento de analizar la **estrategia comercial** de cualquier empresa o negocio y que responde a una cuestión central: ¿que proporción de los clientes que nos compraron en algún momento lo siguen haciendo en determinado período? y en este misma línea: ¿que proporción dejó de hacerlo?.
+
+De lo anterior se desprenden tres conceptos importantes:
+
+-   **Tasa de retención**: representa la proporción de clientes que nos siguen comprando en determinado período de tiempo.
+
+-   **Churn de clientes o tasa de abandono**: es la proporción de clientes que han abandonado nuestro negocio.
+
+-   **Análisis de cohortes**: representa un método de análisis de la retención o abandono en el cuál hacemos un seguimiento de los clientes a lo largo de un tiempo (seguimiento longitudinal). A su vez, una **cohorte** está caracterizada por un criterio común que los agrupa, como puede ser por ejemplo la fecha de su primer compra en nuestro negocio.
+
+    Si nos resultan confusos estos conceptos 😱, veamos un ejemplo y revisemos la construcción de código.
+
+    # Cargamos el dataset y activamos los paquetes 📚
+
+Para este ejemplo utilizaremos el mismo dataset que trabajamos en el artículo de [**Análisis RFM**](https://hghernandez.github.io/posts/2022-08-27-analisis-rfm-para-la-segmentacion-de-clientes/ "Análisis RFM") **,** el cual lo habíamos obtenido de [Kaggle](https://www.kaggle.com/datasets/carrie1/ecommerce-data?resource=download "Kaggle"). Recordemos que se trataba de las ventas e-commerce de una tienda minorista con sede en el Reino Unido y operaciones en varios países.
+
+```{r }
+##Cargo el dataset y las funciones
+
+df <- read.csv("data/data.csv")
+
+#Cargo las librerias
+
+library(dplyr)
+library(lubridate)
+library(tidyr)
+library(ggplot2)
+library(plotly)
+
+```
+
+Veamos 🧐 las variables del dataset [^1]:
+
+[^1]: Puede encontrar una exploración completa del dataset en el **Análisis RFM e**n el siguiente [**link**](https://hghernandez.github.io/posts/2022-08-27-analisis-rfm-para-la-segmentacion-de-clientes/ "link a articulo")**.**
+
+```{r}
+glimpse(df)
+```
+
+De todas las variables de dataset, utilizaremos para nuestro análisis la **fecha de factura** (InvoiceData), la **identificación del usuario** (CustomerID) y el **país** (Country).
+
+# Comenzamos el procesamiento 🎬
+
+En esta etapa realizaremos dos transformaciones centrales en el análisis de la retención por cohortes:
+
+-   **Creamos las cohortes**: el criterio para agrupar los usuarios y crear los cohortes es el mes en la cual realizaron la primer compra a nuestro negocio.
+
+-   **Creamos los meses de permanencia: s**on los meses en los cuales los usuarios registran compras a nuestro negocio.
+
+    Además vamos a excluir los usuarios sin identificación y además vamos a convertir la variable de fecha de facturación que es de cadena en una variable de fecha.
+
+    ```{r}
+
+    df <- df %>%
+      mutate(Date= as_date(lubridate::mdy_hm(InvoiceDate))) %>%
+      filter(!is.na(CustomerID))%>% #Excluimos usuarios sin identificación
+      group_by(CustomerID)%>%
+      mutate(min_fecha= min(Date), 
+             cohorte = paste0(month(min_fecha),"-",year(min_fecha)), #Creamos la cohorte según la fecha de la mínima compra
+             mes= interval(min(Date),Date) %/% months(1)) #Representa los meses en que el usuario ha realizado compras
+    ```
+
+    # Obtenemos la tasa de retención 🧲
+
+    En este punto del análisis vamos a obtener la **tasa de retención.** Para ello, contaremos los usuarios (distintos) por **cohorte** y por **mes de compra.** Luego, calculamos la tasa de retención como el cociente entre la cantidad de usuarios en determinado mes por la cantidad de usuarios en el mes inicial de seguimiento de la cohorte. Por último, mostramos la evolución de la tasa en un heatmap.
+
+    ```{r fig.cap= "Tasa de retención 12 meses", layout= "l-page"}
+    rate.retention <- df %>%
+      group_by(cohorte,mes)%>%
+      summarise(n = n_distinct(CustomerID))%>%
+      mutate(rate= round(n*100/n[mes==0],1),
+             cohorte= format(lubridate::my(cohorte),"%b-%Y")) %>%
+      arrange(cohorte) %>%
+      as.data.frame() %>%
+      ggplot(aes(x= mes, y= reorder(cohorte,mes), fill= rate))+
+      geom_tile()+
+      geom_text(aes(label = rate), color = "white", size = 3) +
+      scale_fill_gradient2(low = "#E0F3DB",mid="#A8DDB5",high = "#43A2CA") +
+      scale_x_continuous(breaks = seq(0,12),expand = c(0,0))+
+      labs(y= "Cohorte", x= "Mes", fill= "Tasa")+
+      coord_fixed()+
+      theme_minimal()
+
+    rate.retention
+    ```
+
+## Algunas observaciones 📣
+
+-   El análisis por cohortes nos permite hacer seguimiento de los usuarios pudiendo encontrar patrones de comportamiento distintos según el mes en el cuál realizaron la primer compra a nuestro negocio. De esta forma podemos evaluar como impacta una campaña o una promoción que lanzamos en determinado momento sobre la fidelización de nuestros clientes.
+
+-   Asimismo, podríamos monetizar el comportamiento de las cohorte obteniendo el promedio gastado por determinada cohorte a lo largo del tiempo de seguimiento (Ver Figura \@ref(fig:fp)).
+
+-   En el análisis vertical (por columnas) podemos evaluar el comportamiento de las cohortes por mes. Por ejemplo: podemos decir que excluyendo noviembre y diciembre de 2011, entre el 17 y el 38% de los clientes que realizan una compra en determinado mes, vuelven a tener una al mes siguiente.
+
+-   En el análisis horizontal (por filas), excluyendo diciembre de 2011 que no está completo (la fecha máxima es 9 de diciembre), casi un 50% de los usuarios aún siguen realizando compras al año. De hecho, la cohorte de dic-2010 muestra una mejora en la retención al mes 10 y 12, lo que ameritaría investigar si se implementó alguna campaña o promoción.
+
+    ```{r fp,fig.cap= "Promedio gastado por las cohorte", layout= "l-page"}
+
+    monetize <- df %>%
+      group_by(cohorte,mes)%>%
+      summarise(prom= round(mean(UnitPrice),1))%>%
+      mutate(cohorte= format(lubridate::my(cohorte),"%b-%Y")) %>%
+      arrange(cohorte) %>%
+      as.data.frame() %>%
+    ggplot(aes(x= mes, y= reorder(cohorte,mes), fill= prom))+
+      geom_tile()+
+      geom_text(aes(label = prom), color = "white", size = 3) +
+      scale_fill_gradient2(low = "#E0F3DB",mid="#A8DDB5",high = "#43A2CA") +
+      scale_x_continuous(breaks = seq(0,12),expand = c(0,0))+
+      labs(y= "Cohorte", x= "Mes", fill= "Tasa")+
+      coord_fixed()+
+      theme_minimal()
+
+    monetize
+    ```
+
+## Podemos explorar a nivel de países 🗺️
+
+Como habíamos dicho el dataset tiene los datos de ventas en UK y en varios países asi que podemos explorar este aspecto.
+
+Para eso seleccionaremos los principales 3 países según la cantidad de clientes, que son: Reino Unido, Francia y Alemania.
+
+Manos a la obra ❗
+
+```{r}
+paises <- c("United Kingdom","France","Germany")
+
+rate.retention.country <- list()
+
+for(pais in paises){
+ 
+rate.retention.country[[pais]]<-
+  df %>%
+  filter(Country== pais)%>%
+  group_by(cohorte,mes)%>%
+  summarise(n = n_distinct(CustomerID))%>%
+  mutate(rate= round(n*100/n[mes==0],1),
+         cohorte= format(lubridate::my(cohorte),"%b-%Y")) %>%
+  arrange(cohorte) %>%
+  as.data.frame() %>%
+  ggplot(aes(x= mes, y= reorder(cohorte,mes), fill= rate))+
+  geom_tile()+
+  geom_text(aes(label = rate), color = "white", size = 3) +
+  scale_fill_gradient2(low = "#E0F3DB",mid="#A8DDB5",high = "#43A2CA") +
+  scale_x_continuous(breaks = seq(0,12))+
+  labs(y= "Cohorte", x= "Mes", fill= "Tasa")+
+  coord_fixed()
+  
+  
+}
+```
+
+```{r xaringan-panelset, echo=FALSE}
+xaringanExtra::use_panelset()
+```
+
+::: panelset
+```{r results='asis'}
+for(i in 1:length(rate.retention.country)){
+  cat("::: {.panel}\n")             
+  cat("##",paises[i], "{.panel-name}\n")
+  print(rate.retention.country[[i]])
+  cat("\n") 
+  cat(":::\n")
+}
+
+```
+:::
+
+Cómo puede verse en los gráficos, a nivel país se obtienen tasas de retención que resultan inestables por lo que los datos deben ser tomados con cautela. Lo que si resulta claro es que el comportamiento de la tasa de retención en general responde casi exclusivamente al comportamiento de los clientes de UK.
+
+# Comentarios finales 😏
+
+👀 El análisis de la tasa de retención mediante cohortes representan un aliado a la hora de evaluar la estrategia comercial a la luz del comportamiento de nuestros clientes y cómo estos responden a las diferentes acciones como las campañas, las promociones, el lanzamiento de nuevos productos, etc.
+
+⚓También este tipo de análisis podemos profundizarlos con otros para estimar el Customer Lifetime Value (CLV) y conocer cuanto puede ganar la empresa del cliente promedio en el transcurso de la relación, pero eso será parte de otro post 💪🏼.
