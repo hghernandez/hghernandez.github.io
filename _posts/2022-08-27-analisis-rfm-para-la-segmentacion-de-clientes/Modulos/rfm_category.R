@@ -1,10 +1,10 @@
 
-rfm_category <- function(df,fecha_analisis,bins, group_by){
+rfm_category <- function(df,fecha_analisis,bins,group_by,inherits.threshold=NULL){
   
   
   
   #Preprocesamiento
-  df <- df %>% dplyr::ungroup()
+  df <- dplyr::ungroup(df)
   
   df <- dplyr::mutate(df, date = as.Date(date),
                       email= dplyr::case_when(grepl("@",email)== FALSE ~ NA_character_,
@@ -56,7 +56,7 @@ rfm_category <- function(df,fecha_analisis,bins, group_by){
   
   row.names(threshold) <- NULL
   
-  
+  if(is.null(inherits.threshold)==TRUE){
   #Clasifico a los Usuarios según los puntos de corte
   
   df$recency_cut <- 0
@@ -69,7 +69,21 @@ rfm_category <- function(df,fecha_analisis,bins, group_by){
     df$frequency_cut[((dplyr::between(df$frequency,lower_frequency[i],upper_frequency[i])))] <- i
     df$monetary_cut[((dplyr::between(df$monetary,lower_monetary[i],upper_monetary[i])))] <- i
   }
+  }else{
+    
   
+  df$recency_cut <- 0
+  df$frequency_cut <- 0
+  df$monetary_cut <- 0
+  
+  for(i in seq_len(bins)){
+    
+    df$recency_cut[((dplyr::between(df$recency,inherits.threshold$lower_recency[i],inherits.threshold$upper_recency[i])))] <- bins-(i-1) #reordeno el scoring del recency
+    df$frequency_cut[((dplyr::between(df$frequency,inherits.threshold$lower_frequency[i],inherits.threshold$upper_frequency[i])))] <- i
+    df$monetary_cut[((dplyr::between(df$monetary,inherits.threshold$lower_monetary[i],inherits.threshold$upper_monetary[i])))] <- i
+  }
+    
+  }
   #Armo el gráfico de RFM mostrando el promedio de monetary por la combinación
   #de todas las categorías de recency y frecuency
   
@@ -103,6 +117,11 @@ rfm_category <- function(df,fecha_analisis,bins, group_by){
                    title= paste0("RFM ",df.graf[1,group_by]))+
     ggplot2::coord_fixed()
   
-  return(list("resultado_rfm"=df, "threshold"=threshold, "heatmap"=grafico_heatmap))
   
+  
+  if(is.null(inherits.threshold)==TRUE){
+  return(list("resultado_rfm"=df, "threshold"=threshold, "heatmap"=grafico_heatmap))
+  }else{
+  return(list("resultado_rfm"=df, "threshold"=inherits.threshold, "heatmap"=grafico_heatmap)) 
+  }
 }

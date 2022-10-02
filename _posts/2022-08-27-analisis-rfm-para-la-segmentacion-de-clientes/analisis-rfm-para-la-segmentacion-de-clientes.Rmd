@@ -129,7 +129,7 @@ DT::datatable(df,filter= 'top',options = list(pageLength = 5, dom = 'tip'))
 
 ### Creamos los puntajes RFM 🛍️
 
-La función *rfm_category,* admite 4 parámetros:
+La función *rfm_category,* admite 5 parámetros:
 
 -   **df**: el dataset a procesar
 
@@ -138,6 +138,8 @@ La función *rfm_category,* admite 4 parámetros:
 -   **bins**: nos permite indicar el número de segmentos en los cuáles queremos cortar nuestra población.
 
 -   **group_by**: nos permite utilizar distintos niveles de agregación. Como el CostumerID puede repetirse entre los países, con este parámetro nos aseguramos que ese valor sea único.
+
+-   **inherits.threshold:** por defecto es NULL. Este parámetro nos permite customizar los umbrales para la asignación de puntajes. Por ejemplo podríamos utilizar para los comercios los umbrales del país y de esa forma estandarizarlos para su comparación.
 
     A su vez la función nos devuelve:
 
@@ -156,7 +158,8 @@ tabla_rfm <- df %>%
   map(~ rfm_category(df = .,
                      fecha_analisis = '2011-12-09',
                      bins = 4,
-                     group_by = "Country"))
+                     group_by = "Country",
+                     inherits.threshold = NULL))
 ```
 
 ```{r xaringan-panelset, echo=FALSE}
@@ -216,13 +219,13 @@ Para la creación de los segmentos utilizaremos la función *segment_rfm*, a la 
 
 Esta función nos retorna:
 
-**tabla_rfm**: que contiene cada uno de nuestros costumer segmentados
+**tabla_rfm**: que contiene cada uno de nuestros customer segmentados
 
-**bar_chart**: gráfico de barras que contabiliza los costumer según el puntaje de recency, frequency y monetary. Representa una estrategia visual para observar la composición de nuestros clientes.
+**bar_chart**: gráfico de barras que contabiliza los customer según el puntaje de recency, frequency y monetary. Representa una estrategia visual para observar la composición de nuestros clientes.
 
-**Composicion_segmento**: muestra la frecuencia absoluta y relativa de los costumer según los segmentos.
+**Composicion_segmento**: muestra la frecuencia absoluta y relativa de los customer según los segmentos.
 
-**bar_chart_seg**: gráfico de barras con la composición por segmentos.
+**treemap_segmentos** : gráfico treemap con la composición por segmentos.
 
 **impact_segment**:contabiliza en términos absolutos y relativos el impacto que tienen los segmentos sobre las ventas y el monto en el país.
 
@@ -282,6 +285,7 @@ for(i in 1:length(tabla_rfm)){
 ```
 
 ::: panelset
+
 ```{r segmentos, results='asis'}
 for(i in 1:length(rfm)){
 
@@ -295,7 +299,7 @@ cat("\n")
 cat("#### Composición de los segmentos")
 cat("\n")
 
-  print(kableExtra::kbl(rfm[[i]]$Composicion_segmento,
+print(kableExtra::kbl(rfm[[i]]$Composicion_segmento,
 
         format.args = list(decimal.mark = ',', big.mark = ".")) %>%
 
@@ -303,7 +307,7 @@ cat("\n")
 
  cat("\n")
  cat("#### Gráfico composición de los segmentos")
- print(rfm[[i]]$bar_chart_seg)
+ print(rfm[[i]]$treemap_segmentos)
  cat("\n")
 
  cat("#### Impacto de los segmentos en las Ventas y el Monto")
