@@ -1,3 +1,3 @@
 library(distill)
 
-create_post("Retencion de clientes: Analisis por cohortes")
+create_post("Compartimos nuestro reporte en un email")

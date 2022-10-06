@@ -1,0 +1,148 @@
+---
+title: "Reporte RFM"
+output: blastula::blastula_email
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  comment = "##",
+  R.options = list(width = 60)
+)
+```
+
+
+```{r include=FALSE}
+##Cargo el dataset y las funciones
+
+df <- read.csv("data/data.csv")
+
+#cargo la función normalize_table
+source("Modulos/normalize_table.R",encoding = "UTF-8")
+
+#Cargo la función rfm_category
+source("Modulos/rfm_category.R",encoding = "UTF-8")
+
+#Cargo la función segment_rfm
+source("Modulos/segment_rfm.R",encoding = "UTF-8")
+
+#Cargo las librerias
+
+library(dplyr)
+library(lubridate)
+library(tidyr)
+library(purrr)
+
+
+```
+
+```{r echo=FALSE, include=FALSE}
+df <- df %>%
+  mutate(Date= as_date(lubridate::mdy_hm(InvoiceDate)))%>%
+  group_by(Country,Date,CustomerID)%>%
+  summarise(Quantity= sum(Quantity),
+            Monetary= sum(UnitPrice)) %>%
+  filter(Country %in% c("United Kingdom")) %>%
+  filter_if(is.numeric, ~ .x > 0)
+
+df <- normalize_table(df = df,
+                date = "Date",
+                id_costumer = "CustomerID",
+                cantidad = "Quantity",
+                monto = "Monetary")
+#Armo el archivo
+
+tabla_rfm <- df %>%
+  mutate(email= "cliente@rfm.com")%>%
+  split(.$Country) %>%
+  map(~ rfm_category(df = .,
+                     fecha_analisis = '2011-12-09',
+                     bins = 4,
+                     group_by = "Country",
+                     inherits.threshold = NULL))
+
+#Creo los nombres de los segmentos y los puntos de corte
+
+nombres_segmentos <- c("Champions","Loyalist","Big Spenders",
+                       "Promising","New Customers","Hibernating")
+recency_lower <-   c(4,1,1,2,4,1)
+recency_upper <-   c(4,4,4,4,4,1)
+frequency_lower <- c(4,4,1,2,1,1)
+frequency_upper <- c(4,4,4,4,4,1)
+monetary_lower <-  c(4,1,4,2,1,1)
+monetary_upper <-  c(4,4,4,4,4,1)
+
+
+#Armo el archivo
+
+
+rfm_uk <- segment_rfm(tabla_rfm = tabla_rfm[[1]],
+                          nombres_segmentos = nombres_segmentos,
+                          recency_lower,
+                          recency_upper,
+                          frequency_lower,
+                          frequency_upper,
+                          monetary_lower,
+                          monetary_upper
+)
+
+
+```
+
+
+# Reporte RFM
+
+Hola, en este correo estamos compartiendo el **Reporte RFM** correspondiente al mes de `r format(lubridate::ymd(Sys.Date()),"%B %Y")`, para los comercios de `r unique(rfm_uk$tabla_rfm$Country)`.
+
+# Composición por segmento
+
+Como puede observarse en el gráfico, el principal segmento son los `r rfm_uk$Composicion_segmento[1,1]` con `r scales::comma(rfm_uk$Composicion_segmento$cantidad[1],big.mark= ".", decimal.mark= ",")` usuarios, lo que representa el `r rfm_uk$Composicion_segmento[1,3]`% del total. Le siguen en orden de importancia los `r rfm_uk$Composicion_segmento[2,1]`, siendo el `r rfm_uk$Composicion_segmento[2,3]`%.
+
+::::: {style="display: flex;"}
+
+:::{}
+
+
+```{r echo= FALSE}
+
+rfm_uk$treemap_segmentos
+
+```
+
+:::
+
+:::{}
+
+```{r echo=FALSE}
+
+rfm_uk$bar_chart
+
+```
+
+
+:::
+
+::::: 
+
+# Cantidad de transacciones por segmento
+
+
+```{r echo=FALSE, fig.align= "center"}
+
+kableExtra::kbl(rfm_uk$impact_segment,
+        col.names = c("Segmentos","Ventas","%","Monto","%"),
+
+        format.args = list(decimal.mark = ',', big.mark = ".")) %>%
+
+        kableExtra::kable_classic_2()
+
+```
+
+Los `r rfm_uk$impact_segment[1,1]` concentran el `r rfm_uk$impact_segment[1,3]`% de las ventas (`r scales::comma( rfm_uk$impact_segment$Ventas[1],big.mark=".", decimal.mark=",")`). Esto se traduce en `r scales::comma(rfm_uk$impact_segment$Monto[1],big.mark=".",decimal.mark = ",")` USD. Le siguen los  `r rfm_uk$impact_segment[2,1]`, concentrando ambos el `r rfm_uk$impact_segment[1,3]+rfm_uk$impact_segment[2,3]`% de las ventas en `r unique(rfm_uk$tabla_rfm$Country)` .
+
+
+Muchas gracias por su atención, por mayores detalles escribame a:
+
+hernanghernandez\@gmail.com

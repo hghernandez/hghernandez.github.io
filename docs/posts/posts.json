@@ -1,5 +1,22 @@
 [
   {
+    "path": "posts/2022-10-06-compartimos-nuestro-reporte-en-un-email/",
+    "title": "Compartimos nuestro reporte en un email",
+    "description": "En un post anterior mostramos como segmentar nuestros clientes mediante un modelo RFM. En este post voy a mostrar como enviarlo en un correo electrónico para compartir nuestro reporte con los stakeholder y apoya la toma de decisiones.",
+    "author": [
+      {
+        "name": "Hernan Hernandez",
+        "url": "https://example.com/norajones"
+      }
+    ],
+    "date": "2022-10-02",
+    "categories": [],
+    "contents": "\r\nIntroducción ✋🏼\r\nSin dudas uno de los puntos más importantes en el mundo del análisis\r\nde datos es disponibilizar de forma oportuna y ágil nuestros reportes a\r\nlos diversos stakeholder de la organización.\r\nExisten diversas estrategias, como por ejemplo elaborar un\r\ndashboards. En esta ocasión voy a mostrar un ejemplo mediante el cuál\r\npodemos crear un correo electrónico ✉️ con nuestro reporte y enviarlo a\r\nlos remitentes que nosotros deseemos.\r\nPara ello utilizaremos la libreria 📚 blastula junto\r\ncon Rmarkdown.\r\nEstaremos compartiendo el reporte RFM que elaboramos\r\nen este post.\r\nCreamos el reporte 📰\r\nDebemos crear un archivo Rmarkdown con formato de salida output:\r\nblastula::blastula_email\r\n\r\n\r\ntitle: \"RFM_report\"\r\nauthor: \"Hernan Hernandez\"\r\ndate: '2022-10-02'\r\noutput: blastula::blastula_email\r\n\r\n\r\n\r\n💻 Creamos\r\nel script para enviar el correo electrónico\r\nPara este paso usaremos la función render_email de\r\nblastula indicandole la ubicación de nuestro archivo .rmd\r\n\r\n\r\nemail <- render_email(\"C:/Users/usuario/Desktop/Reporte_RFM.Rmd\")\r\n\r\n\r\n\r\n📫 Configuramos el correo\r\nelectrónico\r\n\r\n\r\nemail %>%\r\n  smtp_send(to = \"****\",\r\n            from = \"****\",\r\n            subject = paste0(\"Reporte RFM\",format(lubridate::ymd(Sys.Date()),\"%B %Y\")),\r\n            credentials = creds_file(file = \"gmail_creds\"))\r\n\r\n\r\n\r\n⚠️ Para poder usar blastula debemos tener contraseña de aplicación de\r\ngmail.\r\n👀 Veamos el reporte\r\n\r\n\r\n\r\nFigure 1: Vista de la bandeja de entradas\r\n\r\n\r\n\r\n\r\n\r\n\r\nFigure 2: Vista del cuerpo del email\r\n\r\n\r\n\r\nComentarios finales 🔈\r\n✔️ Resulta muy interesante la funcionalidad que nos ofrece\r\nblastula permitiendo crear un correo electrónico con\r\nnuestro reporte directamente desde un archivo\r\nRmarkdown.\r\n✔️Además, aunque no lo abordamos en este ejemplo, admite la\r\nutilización de parámetros los que nos permitiría crear\r\nreportes que segmentan los datos y se envían a diferentes destinatarios.\r\nEn este caso podríamos crear un reporte RFM por país y enviarlos a\r\ndistintos destinatarios.\r\n✔️ Sin dudas poder compartir un correo electrónico con nuestro\r\nreporte es una gran estrategia de comunicación de datos\r\na los stakeholder.\r\n\r\n\r\n\r\n",
+    "preview": "posts/2022-10-06-compartimos-nuestro-reporte-en-un-email/imagenes/email_preview.jpg",
+    "last_modified": "2022-10-06T08:35:29-03:00",
+    "input_file": "compartimos-nuestro-reporte-en-un-email.knit.md"
+  },
+  {
     "path": "posts/2022-09-05-retencion-de-clientes-analisis-por-cohortes/",
     "title": "Retencion de clientes: Analisis por cohortes",
     "description": "En la estrategia comercial de cualquier emprendimiento uno de los KPI´s que se vuelve imprescindible monitorear es cuántos clientes nos siguen comprando en un período de tiempo dado o cuantos clientes nos han abandonado. En este post voy a mostrar como calcular este indicador mediante el análisis de cohortes.",
