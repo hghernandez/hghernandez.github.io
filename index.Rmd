@@ -10,6 +10,8 @@ links:
     url: "https://www.linkedin.com/in/hernanghernandez/"
   - label: GitHub
     url: "https://github.com/hghernandez"
+  - label: Machine Learning
+    url: "https://github.com/hghernandez/MachineLearning"
 output:
   postcards::trestles
 site: distill::distill_website
