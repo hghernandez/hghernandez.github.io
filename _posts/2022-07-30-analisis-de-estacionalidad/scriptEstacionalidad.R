@@ -39,9 +39,11 @@ estacionalidad <- data %>%
 
 
 estacionalidad$seasonal_dx[[1]]$grafico
+
+length(estacionalidad$seasonal_dx)
 #Guardo la lista de estacionalidad
 
-save(estacionalidad,file= "C:/Users/usuario/Documents/Portfolio/_posts/2022-07-30-analisis-de-estacionalidad/estacionalidad.RData")
+save(estacionalidad,file= "C:/Users/usuario/Documents/hghernandez.github.io/_posts/2022-07-30-analisis-de-estacionalidad/estacionalidad.RData")
 
 load("C:/Users/usuario/Documents/Portfolio/_posts/2022-07-30-analisis-de-estacionalidad/dataset_estac.RData")
 
@@ -68,7 +70,7 @@ heatmap_calendar <- data %>%
                                                               ffin = '31-12-2021',
                                                               ColorBrewer = "GnBu")))
 
-heatmap_calendar$heatmap_calendar[[1]]
+heatmap_calendar$heatmap_calendar[[2]]
 
 heatmap_calendar$Merchant
 
@@ -76,7 +78,7 @@ length(heatmap_calendar$heatmap_calendar)
 
 #Guardo los calendarios
 
-save(heatmap_calendar,file= "C:/Users/usuario/Documents/Portfolio/_posts/2022-07-30-analisis-de-estacionalidad/heat_map.RData")
+save(heatmap_calendar,file= "C:/Users/usuario/Documents/hghernandez.github.io/_posts/2022-07-30-analisis-de-estacionalidad/heat_map.RData")
 
 devtools::install_github("hadley/emo")
 

@@ -2,7 +2,7 @@
 title: "Análisis de estacionalidad"
 description: |
   En cualquier ámbito de la vida cotidiana dónde pretendamos hacer proyecciones o compararnos con un momento pasado, es primordial identificar si nuestros datos tienen estacionalidad `r emo::ji("date")`. En este post voy a mostrar algunas estrategias visuales para analizar estacionalidad en series temporales.
-preview: imagenes/estacionalidad.png
+preview: imagenes/estacionalidad2.jpg
 author:
   - name: Hernan Hernandez
     url: https://example.com/norajones
@@ -88,8 +88,15 @@ estacionalidad <- data %>%
 xaringanExtra::use_panelset()
 ```
 
+```{r}
+estacionalidad$seasonal_dx[[2]]$grafico
+```
+
+
+
 ::: panelset
 ```{r results="asis", layout="l-body-outset", fig.heigth=2, fig.width=9}
+
 for(i in 1:length(estacionalidad$seasonal_dx)){
   cat("::: {.panel}\n")
   cat("\n")
