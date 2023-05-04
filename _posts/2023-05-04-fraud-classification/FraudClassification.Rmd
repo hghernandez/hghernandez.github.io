@@ -1,0 +1,577 @@
+---
+title: "Clasificación de fraudes con tarjetas de crédito"
+description: |
+  En este posteo aplicaremos Machine Learning para clasificar transacciones fraudulentas con tarjetas de crédito. Como suele ser común en esta área, nos encontraremos con un dataset con clases desbalanceadas, por lo que también analizaremos como tratar con esta situación.
+preview: imagenes/credit_card_fraud.jpg
+author:
+  - name: Hernan Hernandez
+    url: https://example.com/norajones
+date: 2023-05-04
+output:
+  distill::distill_article:
+    self_contained: false
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  comment = "##",
+  R.options = list(width = 60),
+  fig.heigth=4, 
+  fig.width=6,
+  fig.align = "center"
+)
+
+```
+
+```{r echo=FALSE}
+library(tidyverse)
+library(tidymodels)
+library(DataExplorer)
+library(ggplot2)
+library(correlation)
+library(see)
+library(kableExtra)
+library(themis)
+library(xaringanExtra)
+
+```
+
+```{r echo=FALSE}
+load("data/creditcard.RData")
+load("data/test_dt.RData")
+load("data/test_log.RData")
+load("data/test_rf.RData")
+load("data/test_xgboost.RData")
+load("data/test_dt_resample.RData")
+load("data/test_log_resample.RData")
+load("data/test_xgboost_resample.RData")
+
+```
+
+# Introducción ✋🏼
+
+En esta publicación estaremos aplicando algunos algoritmos de Machine Learning para clasificar transacciones fraudulentas con tarjetas de crédito. Para ello, utilizaremos un dataset publicado en [Kaggle](%22https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud%22) que contiene 284.807 transacciones con tarjetas de crédito, de las cuáles 492 son fradulentas, lo que implica un conjunto de datos muy desbalanceado.
+
+Por cuestiones relacionadas a la confidencialidad, todas las variables numéricas han sido transformadas mediante PCA, excepto por la variable *Time* y *Amount*.
+
+Sin más nos adentramos en el ejercicio.
+
+## Análisis Exploratorio 📰
+
+Primeramente vamos a cargar el dataset.
+
+```{r echo=TRUE, eval=FALSE}
+
+data <- readr::read_csv("data/creditcard.csv")
+```
+
+Como primer paso, con la librería DataExplorer observaremos si el dataset tiene valores pérdidos.
+
+```{r}
+missing_value <- plot_missing(data,
+                              ggtheme = theme_minimal(),
+                              geom_label_args = c(fill="#69b3a2"))
+```
+
+Como puede observarse no existen valores pérdidos en el dataset, por lo que ahora avanzaremos con la distribución de la variable target (Class).
+
+```{r}
+
+data %>%
+  group_by(Class)%>%
+  summarise(Amount= sum(Amount))%>%
+  mutate(p = Amount/sum(Amount)) %>%
+  ggplot(aes(x= as.factor(Class), y= Amount, fill= as.factor(Class)))+
+  geom_bar(stat = "identity")+
+  geom_text(aes(label= scales::percent(p,accuracy = 0.01,suffix = "%")),
+            position = position_dodge(width = 1),
+            vjust = -0.5, size = 3)+
+  scale_fill_discrete(guide="none")+
+  scale_y_continuous(labels = scales::label_number_si())+
+  labs(x= "Fraude", y= "Cantidad")
+```
+
+Aquí puede observarse que sólo el 0,24% de las transacciones han sido fraudulentas, en tanto que más del 99% no lo fueron.
+
+#### 📊Distribución de las transacciones (fraudulentas y no) según la variable time
+
+```{r}
+ggplot2::ggplot(data,aes(x= Time,color= as.factor(Class)))+
+  geom_density(alpha = 0.1)+
+  scale_y_continuous(labels= scales::label_number())+
+  labs(color= "Fraude")
+```
+
+En el gráfico de densidad, puede observarse que las transacciones fraudulentas suelen darse en un periodo de tiempo menor. Asimismo, luego de los 100 mil segundos las transacciones no fradulentas caen, en cambio las fraudulentas se mantienen.
+
+#### Descripción de la variable Amount
+
+```{r}
+data %>%
+  group_by(Class)%>%
+  summarise(Mean= mean(Amount),
+            Median = median(Amount),
+            Q1 = quantile(Amount,0.25),
+            Q3 = quantile(Amount,0.75),
+            Max= max(Amount)) %>%
+            kbl() %>%
+            kable_paper(bootstrap_options = "striped", full_width = F)
+```
+
+Si miramos la distribución del amount entre las transacciones por Class, se puede apreciar que la distribución de los montos de las transacciones fraudulentas es más asimétrica en comparación con las no fraudulentas (ver la diferencia entre el promedio y la mediana). Más aún, si comparamos la mediana en este caso puede verse que las transacciones no fraudulentas muestran un valor más alto (22 vs 9.25).
+
+Esto también puede verse en el siguiente gráfico, en dónde además removemos los valores atípicos (valores por encima del Q3 + (1.5 \* IQR) o por debajo del Q1 - (1.5 \* IQR)).
+
+```{r}
+Q1 <- quantile(data$Amount,probs= 0.25,names=FALSE)
+Q3 <- quantile(data$Amount,probs= 0.75,names=FALSE)
+IQR <- IQR(data$Amount)
+
+lower <- Q1 - (1.5*IQR)
+upper <- Q3 + (1.5*IQR)
+
+
+data %>%
+  filter(Amount > lower & Amount < upper)%>%
+  select(Amount,Class) %>%
+  ggplot(aes(x= as.factor(Class), y= Amount))+
+  stat_boxplot(geom = "errorbar",
+               width = 0.15,
+               coef = 1.5) + 
+  geom_boxplot(outlier.color = "#F452E8", colour = "#191C3C")+
+  scale_y_log10()+
+  labs(x= "Fraude", y= "Amount (escala logaritmica)")
+```
+
+# 💻 Entrenamos los modelos
+
+## 🔪 Dividimos el dataset en train y test
+
+```{r echo=TRUE}
+data$Class <- relevel(as.factor(data$Class),ref = "1")
+
+set.seed(123)
+
+splits <- initial_split(data,strata = "Class",prop = 0.7)
+
+train <- training(splits)
+test <- testing(splits)
+
+```
+
+La distribución de la variable target (Class) en el dataset de train es `r unname(round(table(train$Class)[1]/table(train$Class)[2]*100,2))` y en el dataset de test es `r unname(round(table(test$Class)[1]/table(test$Class)[2]*100,2))`
+
+## ⚙️ Instanciamos los modelos a entrenar
+
+Primeramente creamos la receta y luego instanciamos los modelos.
+
+```{r eval= FALSE, echo= TRUE}
+#Armamos la receta 
+
+fraud_rcp <- recipe(Class ~ ., data)
+
+
+#Instanciamos los modelos
+
+logistic <-
+  logistic_reg() %>%
+  set_engine('glm')
+
+
+decision_tree <-
+  decision_tree() %>%
+  set_engine('rpart') %>%
+  set_mode('classification')
+
+rand_forest <-
+  rand_forest() %>%
+  set_engine('ranger') %>%
+  set_mode('classification')
+
+xgboost <-
+  boost_tree() %>%
+  set_engine('xgboost') %>%
+  set_mode('classification')
+
+```
+
+Creamos una función que nos permita evaluar los modelos instanciados en la etapa anterior y nos devuelva como resultado la matriz de confusión y las métricas. Se seleccionaron *accuracy, recall y roc_auc* para evaluar los modelos. La inclusión del roc_auc como métrica responde a que se ajusta de forma adecuada a la evaluación de modelos entrenados con conjuntos de datos desbalanceados.
+
+```{r echo=TRUE, eval=FALSE}
+
+#Creo una función para evaluar los modelos
+
+run_exploration <- function(model, receta){
+
+#Entrenamos el modelo
+set.seed(123)
+
+model.fit <- workflow()%>%
+  add_recipe(receta) %>%
+  add_model(model) %>%
+  fit(train)
+
+
+#Obtenemos las métricas de error
+set.seed(123)
+
+#Predecimos los valores
+y_predicha <- model.fit %>%
+  predict(test)
+
+#Uno los valores predichos al test
+
+result <- test %>%
+  select(Class)%>% 
+  bind_cols(y_predicha) %>%
+  as.data.frame()
+
+#Seteo las métricas
+eval_metrics <- metric_set(recall, accuracy)
+
+#Genero las métricas
+metricas = eval_metrics(data = result, truth = Class, estimate = .pred_class)
+
+metricas <- as.data.frame(metricas)
+
+modelo = deparse(substitute(model))
+
+metricas$model <- rep(modelo,nrow(metricas))
+
+#Creo la matriz de confusión
+
+cm <- conf_mat(data = result, truth = Class, estimate = .pred_class)
+
+#Grafico la matriz
+cm_graf <- autoplot(cm, type = "heatmap") +
+  scale_fill_gradient(low = "white", high = "#badb33")
+
+#Obtenemos las probabilidades
+
+y_predicha_prob <- model.fit %>%
+  predict(test, type= "prob")
+
+# Unimos las probabilidades al test
+
+result_prob <- test %>%
+  select(Class)%>% 
+  bind_cols(y_predicha_prob) %>%
+  as.data.frame()
+
+#Calculamos el ROC_AUC y se suma a metricas
+
+roc_auc <- result_prob %>%
+  roc_auc(Class, .pred_1)
+
+roc_auc$model <- rep(modelo,nrow(roc_auc))
+
+#Uno el ROC_AUC al resto de las metricas
+
+metricas <- rbind(metricas,roc_auc)
+
+
+return(list("result" = result,"metricas"= metricas, "cm"= cm_graf))
+
+}
+
+```
+
+### 📏 Evaluamos los modelos
+
+```{r eval=FALSE, echo=TRUE}
+
+test_log = run_exploration(logistic,fraud_rcp)
+test_dt = run_exploration(decision_tree,fraud_rcp)
+test_rf = run_exploration(rand_forest,fraud_rcp)
+test_xgboost = run_exploration(xgboost,fraud_rcp)
+
+```
+
+```{r echo=FALSE}
+
+xaringanExtra::use_panelset()
+```
+
+::: panelset
+```{r results="asis", echo=FALSE}
+## Decision Tree
+cat("::: {.panel}\n")
+
+cat("##", unique(unique(test_dt$metricas$model)), "{.panel-name}\n")
+
+print(test_dt$metricas %>%
+  kableExtra::kbl(digits = 3)%>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover")))
+
+cat("\n")
+
+print(test_dt$cm)
+
+cat("\n")
+
+cat(":::\n")
+
+## Logistico
+
+cat("::: {.panel}\n")
+
+cat("##", unique(unique(test_log$metricas$model)), "{.panel-name}\n")
+
+print(test_log$metricas %>%
+  kableExtra::kbl(digits = 3)%>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover")))
+
+cat("\n")
+
+print(test_log$cm)
+
+cat("\n")
+
+cat(":::\n")
+
+## Random Forest
+
+cat("::: {.panel}\n")
+
+cat("##", unique(unique(test_rf$metricas$model)), "{.panel-name}\n")
+
+print(test_rf$metricas %>%
+  kableExtra::kbl(digits = 3)%>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover")))
+
+cat("\n")
+
+print(test_rf$cm)
+
+cat("\n")
+
+cat(":::\n")
+
+## XGBoost
+cat("::: {.panel}\n")
+
+cat("##", unique(unique(test_xgboost$metricas$model)), "{.panel-name}\n")
+
+print(test_xgboost$metricas %>%
+  kableExtra::kbl(digits = 3)%>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover")))
+
+cat("\n")
+
+print(test_xgboost$cm)
+
+cat("\n")
+
+cat(":::\n")
+
+```
+:::
+
+#### Observaciones
+
+-   En los 4 modelos entrenados puede observarse el escenario de un valor alto de accuracy (precisión) pero bajo de recall (sensibilidad). Esto quiere decir que nuestro modelo es eficiente en clasificar correctamente los datos pero es deficiente para clasificar correctamente los casos (en nuestro conjunto la clase minoritaria).
+-   El modelo logistico fué el que peor recall mostró, en tanto que el modelo random forest com xgboost mostraron los mejores valores de recall.
+-   Todos los modelos presentaron valores alto de roc_auc.
+
+### 
+
+⚖️ Estrategias para tratar con datos desbalanceados
+
+Existen diversas estrategias para tratar con datos desbalanceados. Entre ellas, el *sobremuestreo (Over-sampling)* de la clase minoritariao el *submuestreo* *(Under-sampling)* de la clase mayoritaria.
+
+En el ecosistema de *tidymoldels* contamos con el paquete *themis* que permite agregar pasos a la receta.
+
+Veamos como funcionan algunas de estas estrategias.
+
+##### Sobremuestreamos la clase minoritaria hasta igualar el 100% de la mayoritaria
+
+```{r echo=TRUE, eval= TRUE}
+recipe(Class ~ ., data) %>%
+  step_mutate_at(Class,fn = factor) %>%
+  step_relevel(Class,ref_level = "1") %>%
+  step_upsample(Class,over_ratio = 0.5) %>%
+  prep() %>%
+  bake(new_data = NULL) %>%
+  group_by(Class)%>%
+  summarise(n= n()) %>%
+  kableExtra::kbl() %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
+
+```
+
+##### Submuestreamos la clase mayoritaria hasta igual el 100% de la minoritaria
+
+```{r echo=TRUE, eval=TRUE}
+
+recipe(Class ~ ., data) %>%
+  step_mutate_at(Class,fn = factor) %>%
+  step_relevel(Class,ref_level = "1") %>%
+  step_downsample(Class,under_ratio = 1) %>%
+  prep() %>%
+  bake(new_data = NULL) %>%
+  group_by(Class)%>%
+  summarise(n= n()) %>%
+  kableExtra::kbl() %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+##### Sobremuestro utilizando el algoritmo SMOTE (Synthetic Minority Oversampling Technique)
+
+Este algoritmo crea nuevos ejemplos de la clase minoritaria utilizando los *k* vecinos más cercanos.
+
+```{r echo=TRUE, eval=TRUE}
+recipe(Class ~ ., data) %>%
+  step_mutate_at(Class,fn = factor) %>%
+  step_relevel(Class,ref_level = "1") %>%
+  step_smote(Class,over_ratio = 1) %>%
+  prep() %>%
+  bake(new_data = NULL) %>%
+  group_by(Class)%>%
+  summarise(n= n()) %>%
+  kableExtra::kbl() %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+## ⚙️Re-entrenamos los modelos
+
+Ahora suraremos a la receta un paso adicional, que es el sobremuestreo mediante el algrotimo SMOTE.
+
+```{r echo=TRUE, eval=FALSE}
+
+fraud_resample_rec <- recipe(Class ~ ., data) %>%
+  step_mutate_at(Class,fn = factor) %>%
+  step_relevel(Class,ref_level = "1") %>%
+  step_smote(Class,over_ratio = 1)
+
+```
+
+##### Obtenemos las métricas
+
+```{r echo=TRUE, eval=FALSE}
+
+test_log_resample = run_exploration(logistic,fraud_resample_rec)
+test_dt_resample = run_exploration(decision_tree,fraud_resample_rec)
+test_xgboost_resample = run_exploration(xgboost,fraud_resample_rec)
+```
+
+::: panelset
+```{r results="asis", echo=FALSE}
+## Decision Tree
+cat("::: {.panel}\n")
+
+cat("##", unique(unique(test_dt_resample$metricas$model)), "{.panel-name}\n")
+
+print(test_dt_resample$metricas %>%
+  kableExtra::kbl(digits = 3)%>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover")))
+
+cat("\n")
+
+print(test_dt_resample$cm)
+
+cat("\n")
+
+cat(":::\n")
+
+## Logistico
+
+cat("::: {.panel}\n")
+
+cat("##", unique(unique(test_log_resample$metricas$model)), "{.panel-name}\n")
+
+print(test_log_resample$metricas %>%
+  kableExtra::kbl(digits = 3)%>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover")))
+
+cat("\n")
+
+print(test_log_resample$cm)
+
+cat("\n")
+
+cat(":::\n")
+
+## XGBoost
+cat("::: {.panel}\n")
+
+cat("##", unique(unique(test_xgboost_resample$metricas$model)), "{.panel-name}\n")
+
+print(test_xgboost_resample$metricas %>%
+  kableExtra::kbl(digits = 3)%>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover")))
+
+cat("\n")
+
+print(test_xgboost_resample$cm)
+
+cat("\n")
+
+cat(":::\n")
+
+```
+:::
+
+#### Observaciones
+
+-   Los modelos reentrenados mostraron una mejoría sustancial en el recall,destacándose el modelo logístico que paso de un recall de 57% a 85%, pasando a ser el modelo con mayor recall de los entrenados.
+-   Lo que sí debemos considerar que esta mejoría en el recall trae aparejado un incremento en los *Falsos positivos*. Por ejemplo en el caso del modelo logístico el número de Falsos positivos pasó de 11 a 616.
+-   El modelo xgboost si bien tiene un menor recall que el anterior, genera menor cantidad de Falsos positivos (266), pero vale la pena plantear en escenarios el impacto en el negocio.
+
+## 💵 Analizamos el impacto del reentrenamiento en el negocio
+
+Para esto plantearemos 3 escenarios:
+
+-   **Escenario 1:** Analizar el costo (Amount) de los Verdaderos positivos (Fraudes) en el modelo XGBoost sin la estrategia de sobremuestreo.
+
+-   **Escenario 2:** Analizar el costo (Amount) de los Verdaderos positivos (Fraudes) en el modelo XGBoost con sobremuestreo. De esta forma sabremos si logramos evitar mayores pérdidas monetarias versus el escenario 1.
+
+-   **Escenario 3:** Analizar el costo (Amount) de los Falsos positivos (Transacciones clasificadas como fraude sin serlo) en el modelo XGBoost con sobremuestreo.
+
+###### Escenario 1
+
+```{r echo=TRUE, eval=TRUE}
+test %>%
+  select(Amount) %>%
+  bind_cols(test_xgboost$result) %>%
+  summarise(Amount = sum(Amount[.pred_class== 1 & Class == 1])) %>%
+  kableExtra::kbl(format.args = list(big.mark= ".", decimal.mark=","),
+                  col.names = "Escenario 1")%>%
+  kableExtra::kable_classic_2(full_width= F)
+
+```
+
+###### Escenario 2
+
+```{r echo=TRUE, eval=TRUE}
+test %>%
+  select(Amount) %>%
+  bind_cols(test_xgboost_resample$result) %>%
+  summarise(Amount = sum(Amount[.pred_class== 1 & Class == 1])) %>%
+  kableExtra::kbl(format.args = list(big.mark= ".", decimal.mark=","),
+                  col.names = "Escenario 2",)%>%
+  kableExtra::kable_classic_2(full_width= F)
+
+```
+
+Como se puede observar, la mejoría en el rendimiento del modelo nos permite evitar fraudes por 13.424,04, es decir 1.656,94 más que con el primer modelo. Pero cabe preguntarse ¿Que monto representan las transacciones clasificadas como fraude sin serlo?
+
+###### Escenario 3
+
+```{r echo=TRUE, eval=TRUE}
+
+test %>%
+  select(Amount) %>%
+  bind_cols(test_xgboost_resample[1]) %>%
+  summarise(Amount = sum(Amount[.pred_class== 1 & Class == 0])) %>%
+  kableExtra::kbl(format.args = list(big.mark= ".", decimal.mark=","),
+                  col.names = "Escenario 3")%>%
+  kableExtra::kable_classic_2(full_width= F)
+
+```
+
+👉 En el escenario 3 puede verse el impacto que tienen los falsos positivos clasificados por nuestro modelo. Recordemos que en nuestro conjunto de datos la mediana del monto de las transacciones fraudulentas es menor que el de las no fraudulentas. Es muy importante considerar todos los escenarios posibles y el impacto que el o los modelos pueden tener en el negocio.
