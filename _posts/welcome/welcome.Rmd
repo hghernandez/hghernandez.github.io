@@ -8,7 +8,7 @@ author:
     url: https://example.com/norajones
     #affiliation: Spacely Sprockets
     affiliation_url: https://hghernandez.github.io/
-date: 07-18-2022
+date: 2022-07-18
 output:
   distill::distill_article:
     self_contained: false
